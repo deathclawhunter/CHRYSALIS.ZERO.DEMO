@@ -8,19 +8,21 @@ Unity project for the mobile action-RPG prototype, with a playable Rusthollow co
 - Open this repository root in Unity Hub.
 - Open `Assets/Scenes/RusthollowDemo.unity` and press **Play**.
 
-The scene includes a generated Rusthollow scrapyard arena, a playable third-person operator, raiders, fuel-cell pickups, a HUD, and three bounty objectives.
+The scene is an original 2D, isometric-style interior of the Rusted Halo in Rusthollow. It includes illustrated room art, hand-drawn human characters, layered furniture with collision, an animated operator and raiders, a mechanic NPC, visible rifle shots and impact effects, and a five-raider bounty.
 
 Controls:
 
 - WASD or arrow keys: move
 - Mouse: aim
 - Left mouse button: fire
+- Right mouse button or Space: melee attack
+- Shift: run
 - Q: Tactical Focus (slow time)
 - E: Bio-Boost
-- Shift: sprint
-- Right mouse drag: orbit the camera
+- F: talk to Mara when nearby
+- R: restart after being downed
 
-The Rustline Rifle gains proficiency from hits, and Core Ability upgrades are available in the HUD when skill points are earned.
+Original editable SVG artwork is in `ArtSource/Rusthollow/`; the Unity-ready PNGs are in `Assets/Resources/RusthollowArt/`.
 
 ## Milestone 1 browser demo
 

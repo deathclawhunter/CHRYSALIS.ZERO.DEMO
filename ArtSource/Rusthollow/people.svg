@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1024" viewBox="0 0 768 1024">
+  <defs>
+    <linearGradient id="skin" x2="1" y2="1">
+      <stop stop-color="#f0c49d"/><stop offset=".48" stop-color="#bd805f"/><stop offset="1" stop-color="#694436"/>
+    </linearGradient>
+    <linearGradient id="pants" x2="1" y2="1">
+      <stop stop-color="#69736b"/><stop offset=".48" stop-color="#3d4945"/><stop offset="1" stop-color="#202b2a"/>
+    </linearGradient>
+    <linearGradient id="jacket" x2="1" y2="1">
+      <stop stop-color="#798279"/><stop offset=".46" stop-color="#4c5751"/><stop offset="1" stop-color="#2a3432"/>
+    </linearGradient>
+    <linearGradient id="vest" x2="1" y2="1">
+      <stop stop-color="#b49361"/><stop offset=".45" stop-color="#79603d"/><stop offset="1" stop-color="#41372a"/>
+    </linearGradient>
+    <linearGradient id="rifle" x2="0" y2="1">
+      <stop stop-color="#86857a"/><stop offset=".4" stop-color="#3b4240"/><stop offset="1" stop-color="#191f1e"/>
+    </linearGradient>
+    <linearGradient id="raiderJacket" x2="1" y2="1">
+      <stop stop-color="#ae6948"/><stop offset=".45" stop-color="#754237"/><stop offset="1" stop-color="#3c2927"/>
+    </linearGradient>
+    <linearGradient id="raiderVest" x2="1" y2="1">
+      <stop stop-color="#8c784e"/><stop offset=".5" stop-color="#564936"/><stop offset="1" stop-color="#312e26"/>
+    </linearGradient>
+    <filter id="softShadow" x="-.4" y="-.4" width="1.8" height="1.8">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+
+    <g id="shadow">
+      <ellipse cx="96" cy="231" rx="45" ry="12" fill="#101212" opacity=".72" filter="url(#softShadow)"/>
+      <ellipse cx="96" cy="228" rx="38" ry="8" fill="#131817" opacity=".76"/>
+    </g>
+    <g id="body">
+      <path d="M75 48q-7 4-13 13l-12 33 12 23 10-8-4 34 8 24h41l9-24-3-34 11 8 11-23-14-31q-7-11-17-15z"
+            fill="var(--jacket)" stroke="#242b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M76 58l15 5-9 49-20-10 10-25m45-19-14 5 10 48 19-9-9-25"
+            fill="var(--jacketShade)" opacity=".8"/>
+      <path d="M81 57l15 14 15-15-6 34-10 11-9-12z" fill="#c0ac83" stroke="#413d33" stroke-width="3"/>
+      <path d="M87 73l9 17 10-17 8 58H79z" fill="var(--vest)" stroke="#302e28" stroke-width="4"/>
+      <path d="M88 89l-9-7-7 44 14 6 6-29m13-14 9-7 7 44-14 6-6-29" fill="none" stroke="#c5a36d" stroke-width="4"/>
+      <path d="M83 104h12v17H83zm18 0h12v17h-12z" fill="#554833" stroke="#d0af78" stroke-width="2"/>
+      <path d="M82 144q14 6 29 0l6 19H77z" fill="#302b24" stroke="#1c211f" stroke-width="4"/>
+      <path d="M73 151l-5 20 9 8 7-22m33-7 7 21-9 8-7-22" fill="var(--jacketShade)" stroke="#252b29" stroke-width="4"/>
+      <path d="M79 152h32m-31 6h30" stroke="#d1af72" stroke-width="3"/>
+      <path d="M95 143v24m-3-15 5 4 5-4" fill="none" stroke="#252821" stroke-width="3"/>
+      <path d="M91 166l-3 15 9 4 7-4-4-15z" fill="url(#skin)" stroke="#4a332a" stroke-width="3"/>
+      <path d="M74 81l-8 24 8 7m49-31 9 24-9 7" fill="none" stroke="#d1c09a" stroke-width="3" opacity=".65"/>
+      <path d="M72 121l9 3m40-3-9 3" stroke="#d4b674" stroke-width="3"/>
+      <path d="M72 135l7 3m43-3-8 3" stroke="#a64736" stroke-width="3"/>
+      <path d="M77 130l-4 13m41-13 5 13" stroke="#222827" stroke-width="3"/>
+      <path d="M80 166l-4 7m38-7 4 7" stroke="#c4a06b" stroke-width="3"/>
+      <path d="M84 190l24-2m-26 8 28-2m-29 8 29-2" stroke="#222a28" stroke-width="3" opacity=".75"/>
+      <path d="M92 37h10v21H92z" fill="url(#skin)" stroke="#704c3b" stroke-width="3"/>
+      <path d="M77 19q3-13 20-13 18 0 22 17l-2 18q-7 15-20 17-13-3-19-17z" fill="url(#skin)" stroke="#573d33" stroke-width="4"/>
+      <path d="M77 25q0-22 21-22 20 0 23 19l-9-7-12 4-14-3z" fill="#302b27" stroke="#201f1d" stroke-width="3"/>
+      <path d="M85 28h7m14 0h7" stroke="#342c27" stroke-width="3"/>
+      <path d="M86 29q3-3 6 0m14 0q3-3 6 0" fill="#e1c192" stroke="#48352d" stroke-width="2"/>
+      <circle cx="89" cy="30" r="1.6" fill="#252522"/><circle cx="109" cy="30" r="1.6" fill="#252522"/>
+      <path d="M99 31l-3 9 5 1m-9 8q7 4 14-1" fill="none" stroke="#774638" stroke-width="2.5"/>
+      <path d="M74 30l-7 3 2 13 8 5m46-21 7 3-2 13-8 5" fill="url(#skin)" stroke="#573d33" stroke-width="3"/>
+      <path d="M78 53l8 6m29-6-8 6" stroke="#dfbd91" stroke-width="3"/>
+      <path d="M84 19q14-7 30 1m-28 3 6-3m18 4 5-2" fill="none" stroke="#695045" stroke-width="2"/>
+      <path d="M90 13q10-6 19 1" fill="none" stroke="#b88e69" stroke-width="2"/>
+    </g>
+    <g id="legL">
+      <path d="M76 153l22 4-2 41-7 24-23-2 7-28z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M75 165l18 3m-20 6 18 3m-19 22 19 5m-18 7 18 5" stroke="#869084" stroke-width="3" opacity=".7"/>
+      <path d="M70 213l23 3 1 11-4 8-31-3 3-10z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M62 227l27 3m-24-7 22 2" stroke="#b28b56" stroke-width="2"/>
+      <path d="M88 193l8 3-4 10-10-2z" fill="#252b29" stroke="#94815e" stroke-width="2"/>
+    </g>
+    <g id="legR">
+      <path d="M101 157l21-4 5 39 7 26-23 5-9-27z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M105 168l17-4m-15 11 18-3m-12 25 19-5m-18 12 19-5" stroke="#869084" stroke-width="3" opacity=".7"/>
+      <path d="M111 216l23-4 6 9 1 10-30 6-5-8z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M112 231l27-5m-27-1 22-4" stroke="#b28b56" stroke-width="2"/>
+      <path d="M108 194l10-2 3 10-11 3z" fill="#252b29" stroke="#94815e" stroke-width="2"/>
+    </g>
+    <g id="armL">
+      <path d="M70 69q-8 5-10 18l-11 21 3 14 12 3 7-12 14-25-3-14z" fill="var(--jacket)" stroke="#252b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M52 112l12 5-3 11-12-3-4-6z" fill="url(#skin)" stroke="#50392f" stroke-width="3"/>
+      <path d="M61 85l9 6m-15 17 9 4" stroke="var(--jacketShade)" stroke-width="4"/>
+    </g>
+    <g id="armR">
+      <path d="M120 68q9 3 14 16l13 17 1 15-11 8-10-11-17-24 2-14z" fill="var(--jacket)" stroke="#252b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M143 110l-10 8 5 11 12-6 2-7z" fill="url(#skin)" stroke="#50392f" stroke-width="3"/>
+      <path d="M130 84l-8 7m18 11-9 6" stroke="var(--jacketShade)" stroke-width="4"/>
+    </g>
+    <g id="rifle">
+      <path d="M91 112l48-22 4 8-48 24z" fill="url(#rifle)" stroke="#171c1b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M127 94l22-10 4 5-21 12z" fill="#171c1b" stroke="#a68657" stroke-width="2"/>
+      <path d="M103 106l7 14-8 4-8-14zm-5 17-10 8-4-5 10-10z" fill="#504337" stroke="#1b201d" stroke-width="2"/>
+      <path d="M139 92l16-9m-8 6 9-4" stroke="#d3a75c" stroke-width="2"/>
+      <path d="M119 101l-3 14m11-20 4 7" stroke="#ac9a70" stroke-width="2"/>
+    </g>
+    <g id="muzzle">
+      <path d="M143 87l10-13 7 5-10 13z" fill="#ffe5a0" stroke="#ff9b4e" stroke-width="3"/>
+      <path d="M148 85l12-20m-7 25 18-9" stroke="#ffcc71" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="knife">
+      <path d="M144 109l20-29 4 4-14 33z" fill="#ccd0c4" stroke="#373d3b" stroke-width="3"/>
+      <path d="M145 116l8-5 6 8-9 5z" fill="#83503a" stroke="#30251f" stroke-width="2"/>
+      <path d="M159 86l8-8" stroke="#fff1cd" stroke-width="2"/>
+    </g>
+
+    <g id="idle">
+      <use href="#shadow"/><use href="#legL"/><use href="#legR"/><use href="#body"/>
+      <use href="#armL"/><use href="#armR"/><use href="#rifle"/>
+    </g>
+    <g id="walk1">
+      <use href="#shadow"/>
+      <use href="#legL" transform="rotate(-17 84 158)"/>
+      <use href="#legR" transform="rotate(18 112 158)"/>
+      <use href="#body" transform="translate(0 -2)"/>
+      <use href="#armL" transform="rotate(16 73 74)"/>
+      <use href="#armR" transform="rotate(-18 118 74)"/>
+      <use href="#rifle"/>
+    </g>
+    <g id="walk2">
+      <use href="#shadow"/>
+      <use href="#legL" transform="rotate(18 84 158)"/>
+      <use href="#legR" transform="rotate(-17 112 158)"/>
+      <use href="#body" transform="translate(0 -1)"/>
+      <use href="#armL" transform="rotate(-17 73 74)"/>
+      <use href="#armR" transform="rotate(15 118 74)"/>
+      <use href="#rifle"/>
+    </g>
+    <g id="run1">
+      <use href="#shadow"/>
+      <use href="#legL" transform="rotate(-34 84 158) translate(-3 -2)"/>
+      <use href="#legR" transform="rotate(32 112 158) translate(2 -2)"/>
+      <use href="#body" transform="translate(0 -5) rotate(-5 96 114)"/>
+      <use href="#armL" transform="rotate(27 73 74)"/>
+      <use href="#armR" transform="rotate(-28 118 74)"/>
+      <use href="#rifle" transform="translate(0 -3)"/>
+    </g>
+    <g id="run2">
+      <use href="#shadow"/>
+      <use href="#legL" transform="rotate(30 84 158) translate(2 -2)"/>
+      <use href="#legR" transform="rotate(-32 112 158) translate(-3 -2)"/>
+      <use href="#body" transform="translate(0 -3) rotate(-5 96 114)"/>
+      <use href="#armL" transform="rotate(-27 73 74)"/>
+      <use href="#armR" transform="rotate(26 118 74)"/>
+      <use href="#rifle" transform="translate(0 -3)"/>
+    </g>
+    <g id="shoot1">
+      <use href="#shadow"/><use href="#legL"/><use href="#legR"/>
+      <use href="#body" transform="translate(1 0)"/>
+      <use href="#armL" transform="rotate(-22 73 74)"/>
+      <use href="#armR" transform="rotate(22 118 74)"/>
+      <use href="#rifle" transform="rotate(-5 110 107)"/>
+      <use href="#muzzle"/>
+    </g>
+    <g id="shoot2">
+      <use href="#shadow"/><use href="#legL"/><use href="#legR"/>
+      <use href="#body" transform="translate(1 0)"/>
+      <use href="#armL" transform="rotate(-22 73 74)"/>
+      <use href="#armR" transform="rotate(22 118 74)"/>
+      <use href="#rifle" transform="rotate(-2 110 107)"/>
+      <path d="M155 81l10-14 8 4-7 14z" fill="#fff3c3" stroke="#ff8c43" stroke-width="3"/>
+    </g>
+    <g id="attack">
+      <use href="#shadow"/>
+      <use href="#legL" transform="rotate(-15 84 158)"/>
+      <use href="#legR" transform="rotate(11 112 158)"/>
+      <use href="#body" transform="rotate(-5 96 114)"/>
+      <use href="#armL" transform="rotate(-12 73 74)"/>
+      <use href="#armR" transform="rotate(32 118 74)"/>
+      <use href="#knife"/>
+    </g>
+  </defs>
+
+  <g style="--jacket:#68766f;--jacketShade:#3e504b;--vest:#8f784f">
+    <g transform="translate(0 0)"><use href="#idle"/></g>
+    <g transform="translate(192 0)"><use href="#walk1"/></g>
+    <g transform="translate(384 0)"><use href="#walk2"/></g>
+    <g transform="translate(576 0)"><use href="#run1"/></g>
+    <g transform="translate(0 256)"><use href="#run2"/></g>
+    <g transform="translate(192 256)"><use href="#shoot1"/></g>
+    <g transform="translate(384 256)"><use href="#shoot2"/></g>
+    <g transform="translate(576 256)"><use href="#attack"/></g>
+  </g>
+  <g style="--jacket:#884f3d;--jacketShade:#512f2d;--vest:#78633c">
+    <g transform="translate(0 512)"><use href="#idle"/></g>
+    <g transform="translate(192 512)"><use href="#walk1"/></g>
+    <g transform="translate(384 512)"><use href="#walk2"/></g>
+    <g transform="translate(576 512)"><use href="#run1"/></g>
+    <g transform="translate(0 768)"><use href="#run2"/></g>
+    <g transform="translate(192 768)"><use href="#shoot1"/></g>
+    <g transform="translate(384 768)"><use href="#shoot2"/></g>
+    <g transform="translate(576 768)"><use href="#attack"/></g>
+  </g>
+</svg>

@@ -4,65 +4,85 @@ using UnityEngine.InputSystem;
 
 public sealed class RusthollowDemo : MonoBehaviour
 {
-    private sealed class Raider
+    private sealed class Actor
     {
         public GameObject Root;
-        public Collider Collider;
+        public SpriteRenderer Renderer;
+        public SpriteRenderer HealthBack;
+        public SpriteRenderer HealthFill;
+        public Vector2 Facing = Vector2.right;
         public float Health;
         public float AttackTimer;
+        public float WakeTimer;
+        public float AnimationTime;
+        public float ActionTime;
+        public bool IsRaider;
+        public bool IsPlayer;
+        public bool IsRunning;
     }
 
-    private readonly List<Raider> raiders = new List<Raider>();
-    private readonly Dictionary<Collider, Raider> raidersByCollider = new Dictionary<Collider, Raider>();
-    private readonly List<GameObject> fuelCells = new List<GameObject>();
-    private readonly int[] abilities = { 12, 10, 8, 11, 12 };
-    private readonly string[] abilityNames =
+    private sealed class Projectile
     {
-        "Ballistics & Arms",
-        "Bio-Sync",
-        "Cyber-Tech",
-        "Tactics & Reflex",
-        "Grit & Physique"
+        public GameObject Root;
+        public Vector2 Position;
+        public Vector2 Direction;
+        public float Remaining;
+        public float Damage;
+    }
+
+    private sealed class Effect
+    {
+        public GameObject Root;
+        public SpriteRenderer Renderer;
+        public float Remaining;
+        public float Duration;
+        public float InitialScale;
+    }
+
+    private readonly List<Actor> raiders = new List<Actor>();
+    private readonly List<Projectile> projectiles = new List<Projectile>();
+    private readonly List<Effect> effects = new List<Effect>();
+    private readonly HashSet<Collider2D> furnitureColliders = new HashSet<Collider2D>();
+    private readonly List<UnityEngine.Object> generatedAssets = new List<UnityEngine.Object>();
+    private readonly List<Sprite> operatorFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderFrames = new List<Sprite>();
+    private readonly Vector2[] startingRaiderPositions =
+    {
+        new Vector2(-8f, 2.05f),
+        new Vector2(0f, 2.1f),
+        new Vector2(8f, 2.05f),
+        new Vector2(-7.7f, -4.05f),
+        new Vector2(7.7f, -4.05f)
     };
 
     private Camera gameCamera;
-    private CharacterController playerController;
-    private Transform player;
-    private Material groundMaterial;
-    private Material scrapMaterial;
-    private Material darkMetalMaterial;
-    private Material raiderMaterial;
-    private Material fuelMaterial;
-    private Material playerMaterial;
-    private Material tracerMaterial;
-    private Vector3 playerVelocity;
-    private Vector3 aimPoint;
-    private int level = 1;
-    private int xp;
-    private int xpToNext = 60;
-    private int skillPoints = 2;
-    private int credits = 120;
-    private int kills;
-    private int fuelCollected;
-    private int rifleProficiency = 1;
-    private int proficiencyProgress;
-    private float health = 100f;
-    private float maxHealth = 100f;
-    private float bioCalories = 100f;
-    private float ghostBleed = 20f;
+    private Actor player;
+    private Actor fixer;
+    private Sprite[] propSprites;
+    private Sprite mechanicSprite;
+    private Sprite bulletSprite;
+    private Sprite impactSprite;
+    private Sprite solidSprite;
+    private Vector2 aimPoint;
     private float fireCooldown;
     private float focusRemaining;
     private float focusCooldown;
+    private float boostCooldown;
     private float boostRemaining;
-    private bool scrapyardComplete;
-    private bool fuelContractComplete;
-    private bool ambushStarted;
-    private bool ambushComplete;
-    private float ambushTime;
-    private float ambushSpawnTimer;
-    private float cameraYaw;
-    private float cameraPitch = 13f;
-    private const float AmbushDuration = 25f;
+    private float health = 100f;
+    private int kills;
+    private int credits = 120;
+    private int xp;
+    private bool fixerMessageVisible;
+    private float fixerMessageTime;
+    private string fixerMessage = "Mara: Keep the Rusted Halo standing.";
+    private bool gameOver;
+
+    private const float RoomMinX = -8.45f;
+    private const float RoomMaxX = 8.45f;
+    private const float RoomMinY = -4.55f;
+    private const float RoomMaxY = 2.45f;
+    private const int ContractGoal = 5;
 
     private void Start()
     {
@@ -79,29 +99,294 @@ public sealed class RusthollowDemo : MonoBehaviour
             return;
         }
 
-        CreateMaterials();
-        CreateEnvironment();
-        CreatePlayer();
-        CreateFuelCells();
-        SpawnStartingRaiders();
+        if (!LoadArt())
+        {
+            enabled = false;
+            return;
+        }
+
         ConfigureCamera();
-        UpdateAimPoint();
+        CreateRoom();
+        CreateFurniture();
+        CreateActors();
+        aimPoint = player.Root.transform.position;
+    }
+
+    private bool LoadArt()
+    {
+        Texture2D roomTexture = LoadTexture("room");
+        Texture2D propTexture = LoadTexture("props");
+        Texture2D peopleTexture = LoadTexture("people");
+        Texture2D mechanicTexture = LoadTexture("mechanic");
+        if (roomTexture == null || propTexture == null || peopleTexture == null || mechanicTexture == null)
+        {
+            return false;
+        }
+
+        Sprite roomSprite = MakeSprite(roomTexture, new Rect(0f, 0f, roomTexture.width, roomTexture.height), new Vector2(0.5f, 0.5f));
+        CreatePropSprites(propTexture);
+        CreateCharacterSprites(peopleTexture);
+        mechanicSprite = MakeSprite(
+            mechanicTexture,
+            new Rect(0f, 0f, mechanicTexture.width, mechanicTexture.height),
+            new Vector2(0.5f, 0.04f));
+
+        Texture2D effectTexture = CreateEffectTexture();
+        generatedAssets.Add(effectTexture);
+        bulletSprite = MakeSprite(effectTexture, new Rect(0f, 0f, effectTexture.width, effectTexture.height), new Vector2(0.5f, 0.5f));
+        impactSprite = MakeSprite(effectTexture, new Rect(0f, 0f, effectTexture.width, effectTexture.height), new Vector2(0.5f, 0.5f));
+        Texture2D solidTexture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        solidTexture.name = "Rusthollow Solid Pixel";
+        solidTexture.SetPixel(0, 0, Color.white);
+        solidTexture.Apply();
+        generatedAssets.Add(solidTexture);
+        solidSprite = MakeSprite(solidTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
+
+        GameObject room = new GameObject("The Rusted Halo - illustrated room");
+        room.transform.position = new Vector3(0f, 0f, 2f);
+        SpriteRenderer roomRenderer = room.AddComponent<SpriteRenderer>();
+        roomRenderer.sprite = roomSprite;
+        roomRenderer.sortingOrder = -1000;
+        return true;
+    }
+
+    private static Texture2D LoadTexture(string assetName)
+    {
+        Texture2D texture = Resources.Load<Texture2D>("RusthollowArt/" + assetName);
+        if (texture == null)
+        {
+            Debug.LogError("Missing Rusthollow art resource: Resources/RusthollowArt/" + assetName + ".png");
+            return null;
+        }
+
+        texture.filterMode = FilterMode.Bilinear;
+        texture.wrapMode = TextureWrapMode.Clamp;
+        return texture;
+    }
+
+    private Sprite MakeSprite(Texture2D texture, Rect rect, Vector2 pivot)
+    {
+        Sprite sprite = Sprite.Create(texture, rect, pivot, 100f, 0, SpriteMeshType.FullRect);
+        sprite.name = texture.name + " sprite";
+        generatedAssets.Add(sprite);
+        return sprite;
+    }
+
+    private void CreatePropSprites(Texture2D texture)
+    {
+        propSprites = new Sprite[8];
+        const int frameWidth = 240;
+        const int frameHeight = 192;
+        for (int i = 0; i < propSprites.Length; i++)
+        {
+            int column = i % 4;
+            int rowFromTop = i / 4;
+            Rect rect = new Rect(
+                column * frameWidth,
+                texture.height - (rowFromTop + 1) * frameHeight,
+                frameWidth,
+                frameHeight);
+            propSprites[i] = MakeSprite(texture, rect, new Vector2(0.5f, 0.08f));
+        }
+    }
+
+    private void CreateCharacterSprites(Texture2D texture)
+    {
+        const int frameWidth = 192;
+        const int frameHeight = 256;
+        for (int rowFromTop = 0; rowFromTop < 4; rowFromTop++)
+        {
+            for (int column = 0; column < 4; column++)
+            {
+                Rect rect = new Rect(
+                    column * frameWidth,
+                    texture.height - (rowFromTop + 1) * frameHeight,
+                    frameWidth,
+                    frameHeight);
+                Sprite frame = MakeSprite(texture, rect, new Vector2(0.5f, 0.035f));
+                if (rowFromTop < 2)
+                {
+                    operatorFrames.Add(frame);
+                }
+                else
+                {
+                    raiderFrames.Add(frame);
+                }
+            }
+        }
+    }
+
+    private static Texture2D CreateEffectTexture()
+    {
+        const int size = 32;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = "Rusthollow muzzle and impact glow";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] pixels = new Color32[size * size];
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float nx = (x + 0.5f - size * 0.5f) / (size * 0.5f);
+                float ny = (y + 0.5f - size * 0.5f) / (size * 0.5f);
+                float distance = Mathf.Sqrt(nx * nx + ny * ny);
+                byte alpha = (byte)(Mathf.Clamp01((1f - distance) * 2.6f) * 255f);
+                pixels[y * size + x] = new Color32(255, 255, 255, alpha);
+            }
+        }
+
+        texture.SetPixels32(pixels);
+        texture.Apply();
+        return texture;
+    }
+
+    private void ConfigureCamera()
+    {
+        gameCamera.orthographic = true;
+        gameCamera.orthographicSize = 5.4f;
+        gameCamera.clearFlags = CameraClearFlags.SolidColor;
+        gameCamera.backgroundColor = new Color(0.055f, 0.065f, 0.063f);
+        gameCamera.transform.position = new Vector3(0f, 0f, -10f);
+        gameCamera.transform.rotation = Quaternion.identity;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void CreateRoom()
+    {
+        RenderSettings.fog = false;
+        Time.timeScale = 1f;
+    }
+
+    private void CreateFurniture()
+    {
+        CreateProp("Backbar bottles", 4, new Vector2(-6.3f, 1.65f), new Vector2(2.4f, 1.92f), Vector2.zero);
+        CreateProp("The Rusted Halo bar", 0, new Vector2(-6.15f, -0.15f), new Vector2(2.7f, 2.15f), new Vector2(1.7f, 0.58f));
+        CreateProp("Salvage workbench", 1, new Vector2(-3.45f, 0.05f), new Vector2(2.35f, 1.86f), new Vector2(1.65f, 0.55f));
+        CreateProp("Bounty terminal", 2, new Vector2(5.4f, 1.35f), new Vector2(1.9f, 1.52f), new Vector2(0.92f, 0.72f));
+        CreateProp("Card table", 3, new Vector2(-1.85f, -0.65f), new Vector2(1.95f, 1.62f), new Vector2(1.2f, 0.62f));
+        CreateProp("Battered cot", 5, new Vector2(3.05f, 1.48f), new Vector2(2.25f, 1.8f), new Vector2(1.65f, 0.62f));
+        CreateProp("Salvage crates", 6, new Vector2(6.4f, -2.72f), new Vector2(2.12f, 1.7f), new Vector2(1.4f, 0.72f));
+        CreateProp("Bentwood chair", 7, new Vector2(0.15f, -3.55f), new Vector2(1.45f, 1.52f), new Vector2(0.8f, 0.58f));
+    }
+
+    private void CreateProp(string name, int spriteIndex, Vector2 position, Vector2 size, Vector2 colliderSize)
+    {
+        const float propWidth = 2.4f;
+        const float propHeight = 1.92f;
+        Vector3 scale = new Vector3(size.x / propWidth, size.y / propHeight, 1f);
+        GameObject prop = new GameObject(name);
+        prop.transform.position = new Vector3(position.x, position.y, 0f);
+        prop.transform.localScale = scale;
+        SpriteRenderer renderer = prop.AddComponent<SpriteRenderer>();
+        renderer.sprite = propSprites[spriteIndex];
+        renderer.sortingOrder = SortOrder(position.y) + 1;
+        if (colliderSize.sqrMagnitude > 0f)
+        {
+            BoxCollider2D collider = prop.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(colliderSize.x / scale.x, colliderSize.y / scale.y);
+            collider.offset = new Vector2(0f, collider.size.y * 0.48f);
+            collider.isTrigger = true;
+            furnitureColliders.Add(collider);
+        }
+    }
+
+    private void CreateActors()
+    {
+        player = CreateActor("Rustline Operator", new Vector2(-0.2f, -2.72f), true, false);
+        player.Health = 100f;
+        player.IsPlayer = true;
+
+        fixer = CreateActor("Mara - salvage mechanic", new Vector2(-5.55f, -1.35f), false, false);
+        fixer.Renderer.sprite = mechanicSprite;
+        fixer.Renderer.color = Color.white;
+
+        SpawnRaiders();
+    }
+
+    private void SpawnRaiders()
+    {
+        foreach (Vector2 position in startingRaiderPositions)
+        {
+            Actor raider = CreateActor("Rusthollow Raider", position, false, true);
+            raider.Health = 56f;
+            raider.AttackTimer = Random.Range(1.35f, 2.2f);
+            raider.WakeTimer = 2.8f;
+            raiders.Add(raider);
+        }
+    }
+
+    private Actor CreateActor(string name, Vector2 position, bool isPlayer, bool isRaider)
+    {
+        GameObject root = new GameObject(name);
+        root.transform.position = new Vector3(position.x, position.y, -0.2f);
+        SpriteRenderer renderer = root.AddComponent<SpriteRenderer>();
+        renderer.sprite = (isRaider ? raiderFrames : operatorFrames)[0];
+        renderer.color = isRaider ? new Color(1f, 0.58f, 0.43f) : Color.white;
+        renderer.sortingOrder = SortOrder(position.y);
+
+        Actor actor = new Actor
+        {
+            Root = root,
+            Renderer = renderer,
+            IsRaider = isRaider,
+            IsPlayer = isPlayer
+        };
+        if (isRaider)
+        {
+            GameObject barBack = new GameObject(name + " health background");
+            barBack.transform.SetParent(root.transform, false);
+            barBack.transform.localPosition = new Vector3(0f, 2.3f, -0.01f);
+            barBack.transform.localScale = new Vector3(0.72f, 0.08f, 1f);
+            actor.HealthBack = barBack.AddComponent<SpriteRenderer>();
+            actor.HealthBack.sprite = solidSprite;
+            actor.HealthBack.color = new Color(0.08f, 0.07f, 0.06f, 0.9f);
+            actor.HealthBack.sortingOrder = 20;
+
+            GameObject barFill = new GameObject(name + " health");
+            barFill.transform.SetParent(barBack.transform, false);
+            barFill.transform.localPosition = new Vector3(-0.5f, 0f, -0.01f);
+            barFill.transform.localScale = new Vector3(1f, 0.72f, 1f);
+            actor.HealthFill = barFill.AddComponent<SpriteRenderer>();
+            actor.HealthFill.sprite = solidSprite;
+            actor.HealthFill.color = new Color(0.82f, 0.24f, 0.15f);
+            actor.HealthFill.sortingOrder = 21;
+        }
+
+        return actor;
     }
 
     private void Update()
     {
-        if (player == null)
+        if (player == null || player.Root == null)
         {
             return;
         }
 
-        float unscaledDelta = Time.unscaledDeltaTime;
-        fireCooldown = Mathf.Max(0f, fireCooldown - unscaledDelta);
-        focusCooldown = Mathf.Max(0f, focusCooldown - unscaledDelta);
+        float deltaTime = Time.deltaTime;
+        fireCooldown = Mathf.Max(0f, fireCooldown - deltaTime);
+        focusCooldown = Mathf.Max(0f, focusCooldown - deltaTime);
+        boostCooldown = Mathf.Max(0f, boostCooldown - deltaTime);
+        boostRemaining = Mathf.Max(0f, boostRemaining - deltaTime);
+        fixerMessageTime = Mathf.Max(0f, fixerMessageTime - deltaTime);
+        fixerMessageVisible = fixerMessageTime > 0f;
+
+        Keyboard keyboard = Keyboard.current;
+        Mouse mouse = Mouse.current;
+        if (keyboard != null && keyboard.rKey.wasPressedThisFrame && gameOver)
+        {
+            ResetPlayer();
+        }
+
+        if (gameOver)
+        {
+            UpdateEffects(deltaTime);
+            return;
+        }
 
         if (focusRemaining > 0f)
         {
-            focusRemaining -= unscaledDelta;
+            focusRemaining -= deltaTime;
             if (focusRemaining <= 0f)
             {
                 focusRemaining = 0f;
@@ -109,214 +394,65 @@ public sealed class RusthollowDemo : MonoBehaviour
             }
         }
 
-        if (boostRemaining > 0f)
-        {
-            boostRemaining = Mathf.Max(0f, boostRemaining - unscaledDelta);
-        }
+        UpdateAimPoint(mouse);
+        ReadPlayerInput(keyboard, mouse, deltaTime);
+        UpdateRaiders(deltaTime);
+        UpdateProjectiles(deltaTime);
+        UpdateEffects(deltaTime);
+        UpdateActors(deltaTime);
 
-        ReadInput();
-        UpdateRaiders();
-        UpdateFuelCells();
-        UpdateContracts(Time.deltaTime);
-        UpdateVitals(Time.deltaTime);
-        UpdateLevel();
+        if (health <= 0f)
+        {
+            health = 0f;
+            gameOver = true;
+            Time.timeScale = 1f;
+        }
     }
 
-    private void LateUpdate()
+    private void UpdateAimPoint(Mouse mouse)
     {
-        if (player == null || gameCamera == null)
+        if (mouse == null)
         {
             return;
         }
 
-        Quaternion orbit = Quaternion.Euler(cameraPitch, cameraYaw, 0f);
-        Vector3 desiredPosition = player.position + Vector3.up * 1.35f + orbit * new Vector3(0f, 1.5f, -7.5f);
-        gameCamera.transform.position = Vector3.Lerp(
-            gameCamera.transform.position,
-            desiredPosition,
-            1f - Mathf.Exp(-10f * Time.unscaledDeltaTime));
-        Vector3 lookTarget = player.position + Vector3.up * 1.1f;
-        gameCamera.transform.rotation = Quaternion.LookRotation(lookTarget - gameCamera.transform.position);
-    }
-
-    private void OnDisable()
-    {
-        Time.timeScale = 1f;
-    }
-
-    private void CreateMaterials()
-    {
-        groundMaterial = MakeMaterial(new Color(0.18f, 0.20f, 0.19f));
-        scrapMaterial = MakeMaterial(new Color(0.29f, 0.32f, 0.34f));
-        darkMetalMaterial = MakeMaterial(new Color(0.10f, 0.14f, 0.17f));
-        raiderMaterial = MakeMaterial(new Color(0.65f, 0.22f, 0.20f));
-        fuelMaterial = MakeMaterial(new Color(0.12f, 0.83f, 0.90f));
-        playerMaterial = MakeMaterial(new Color(0.14f, 0.66f, 0.78f));
-        tracerMaterial = MakeMaterial(new Color(1f, 0.76f, 0.36f));
-    }
-
-    private static Material MakeMaterial(Color color)
-    {
-        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
-        if (shader == null)
+        Vector2 pointer = mouse.position.ReadValue();
+        Vector3 world = gameCamera.ScreenToWorldPoint(new Vector3(pointer.x, pointer.y, -gameCamera.transform.position.z));
+        aimPoint = new Vector2(world.x, world.y);
+        Vector2 facing = aimPoint - ActorPosition(player);
+        if (facing.sqrMagnitude > 0.01f)
         {
-            shader = Shader.Find("Standard");
-        }
-
-        Material material = new Material(shader);
-        material.color = color;
-        material.enableInstancing = true;
-        return material;
-    }
-
-    private void CreateEnvironment()
-    {
-        RenderSettings.fog = true;
-        RenderSettings.fogColor = new Color(0.24f, 0.29f, 0.31f);
-        RenderSettings.fogMode = FogMode.Exponential;
-        RenderSettings.fogDensity = 0.006f;
-
-        GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Rusthollow Silt Yard";
-        ground.transform.position = Vector3.zero;
-        ground.transform.localScale = new Vector3(6f, 1f, 6f);
-        ground.GetComponent<Renderer>().sharedMaterial = groundMaterial;
-
-        CreateBlock("Scrap wall west", new Vector3(-25f, 1f, 0f), new Vector3(1f, 2f, 50f), darkMetalMaterial);
-        CreateBlock("Scrap wall east", new Vector3(25f, 1f, 0f), new Vector3(1f, 2f, 50f), darkMetalMaterial);
-        CreateBlock("Scrap wall north", new Vector3(0f, 1f, 25f), new Vector3(50f, 2f, 1f), darkMetalMaterial);
-        CreateBlock("Scrap wall south", new Vector3(0f, 1f, -25f), new Vector3(50f, 2f, 1f), darkMetalMaterial);
-
-        CreateBlock("Rust container A", new Vector3(-8f, 1f, 7f), new Vector3(3f, 2f, 8f), scrapMaterial);
-        CreateBlock("Rust container B", new Vector3(10f, 1f, 10f), new Vector3(8f, 2f, 3f), scrapMaterial);
-        CreateBlock("Broken gantry", new Vector3(-15f, 1f, -9f), new Vector3(3f, 2f, 9f), darkMetalMaterial);
-        CreateBlock("Salvage stack", new Vector3(13f, 1f, -12f), new Vector3(7f, 2f, 3f), scrapMaterial);
-        CreateBlock("Low cover", new Vector3(1f, 0.65f, -15f), new Vector3(9f, 1.3f, 2f), scrapMaterial);
-    }
-
-    private static void CreateBlock(string name, Vector3 position, Vector3 scale, Material material)
-    {
-        GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        block.name = name;
-        block.transform.position = position;
-        block.transform.localScale = scale;
-        block.GetComponent<Renderer>().sharedMaterial = material;
-    }
-
-    private void CreatePlayer()
-    {
-        GameObject operatorObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        operatorObject.name = "Operator";
-        operatorObject.layer = 2;
-        operatorObject.transform.position = new Vector3(0f, 1f, 0f);
-        operatorObject.GetComponent<Renderer>().sharedMaterial = playerMaterial;
-        operatorObject.GetComponent<CapsuleCollider>().enabled = false;
-        playerController = operatorObject.AddComponent<CharacterController>();
-        playerController.height = 2f;
-        playerController.radius = 0.42f;
-        playerController.center = Vector3.zero;
-        playerController.slopeLimit = 45f;
-        playerController.stepOffset = 0.3f;
-        player = operatorObject.transform;
-
-        GameObject rifle = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        rifle.name = "Rustline Rifle";
-        rifle.layer = 2;
-        rifle.transform.SetParent(player, false);
-        rifle.transform.localPosition = new Vector3(0.42f, 0.05f, 0.52f);
-        rifle.transform.localScale = new Vector3(0.16f, 0.18f, 0.8f);
-        rifle.GetComponent<Renderer>().sharedMaterial = darkMetalMaterial;
-        rifle.GetComponent<Collider>().enabled = false;
-    }
-
-    private void CreateFuelCells()
-    {
-        Vector3[] positions =
-        {
-            new Vector3(7f, 0.55f, 2f),
-            new Vector3(-17f, 0.55f, 11f),
-            new Vector3(18f, 0.55f, -4f),
-            new Vector3(-5f, 0.55f, -18f),
-            new Vector3(4f, 0.55f, 18f)
-        };
-
-        for (int i = 0; i < positions.Length; i++)
-        {
-            GameObject cell = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            cell.name = "Fuel Cell " + (i + 1);
-            cell.transform.position = positions[i];
-            cell.transform.localScale = new Vector3(0.42f, 0.55f, 0.42f);
-            cell.GetComponent<Renderer>().sharedMaterial = fuelMaterial;
-            fuelCells.Add(cell);
+            SetFacing(player, facing.normalized);
         }
     }
 
-    private void SpawnStartingRaiders()
+    private void ReadPlayerInput(Keyboard keyboard, Mouse mouse, float deltaTime)
     {
-        Vector3[] positions =
-        {
-            new Vector3(-12f, 1f, 15f),
-            new Vector3(13f, 1f, 15f),
-            new Vector3(-18f, 1f, 4f),
-            new Vector3(18f, 1f, -7f),
-            new Vector3(9f, 1f, -18f),
-            new Vector3(-13f, 1f, -17f)
-        };
-
-        foreach (Vector3 position in positions)
-        {
-            SpawnRaider(position);
-        }
-    }
-
-    private void SpawnRaider(Vector3 position)
-    {
-        GameObject raiderObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        raiderObject.name = "Silt Raider";
-        raiderObject.transform.position = position;
-        raiderObject.GetComponent<Renderer>().sharedMaterial = raiderMaterial;
-        Raider raider = new Raider
-        {
-            Root = raiderObject,
-            Collider = raiderObject.GetComponent<Collider>(),
-            Health = 60f,
-            AttackTimer = Random.Range(0.5f, 1.3f)
-        };
-        raiders.Add(raider);
-        raidersByCollider.Add(raider.Collider, raider);
-    }
-
-    private void ConfigureCamera()
-    {
-        gameCamera.fieldOfView = 58f;
-        gameCamera.clearFlags = CameraClearFlags.SolidColor;
-        gameCamera.backgroundColor = new Color(0.23f, 0.29f, 0.32f);
-        cameraYaw = player.eulerAngles.y;
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
-    }
-
-    private void ReadInput()
-    {
-        Keyboard keyboard = Keyboard.current;
-        Mouse mouse = Mouse.current;
         if (keyboard == null)
         {
             return;
         }
 
-        if (keyboard.qKey.wasPressedThisFrame && focusCooldown <= 0f && focusRemaining <= 0f)
+        if (keyboard.qKey.wasPressedThisFrame && focusCooldown <= 0f)
         {
-            focusRemaining = Mathf.Clamp(2f + (abilities[3] - 11) * 0.04f, 1.5f, 4f);
-            focusCooldown = 5f;
-            Time.timeScale = 0.7f;
+            focusRemaining = 2.3f;
+            focusCooldown = 6f;
+            Time.timeScale = 0.55f;
         }
 
-        if (keyboard.eKey.wasPressedThisFrame && boostRemaining <= 0f && bioCalories >= 25f)
+        if (keyboard.eKey.wasPressedThisFrame && boostCooldown <= 0f)
         {
-            bioCalories -= 25f;
-            ghostBleed = Mathf.Min(100f, ghostBleed + 10f);
-            boostRemaining = 4f;
+            boostRemaining = 3.5f;
+            boostCooldown = 8f;
+            health = Mathf.Min(100f, health + 26f);
+            CreateEffect(ActorPosition(player) + Vector2.up * 0.55f, new Color(0.3f, 0.84f, 1f), 0.42f, 0.32f);
+            ShowMessage("BIO-BOOST // tissue knit active");
+        }
+
+        if (keyboard.fKey.wasPressedThisFrame && Vector2.Distance(ActorPosition(player), ActorPosition(fixer)) < 2f)
+        {
+            fixerMessage = "Mara: Five raiders are tearing up my bar. Clear them and the bounty is yours.";
+            fixerMessageTime = 5f;
         }
 
         Vector2 movement = Vector2.zero;
@@ -326,352 +462,582 @@ public sealed class RusthollowDemo : MonoBehaviour
         if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) movement.y -= 1f;
         movement = Vector2.ClampMagnitude(movement, 1f);
 
-        if (mouse != null && mouse.rightButton.isPressed)
+        player.IsRunning = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+        if (movement.sqrMagnitude > 0.001f)
         {
-            Vector2 lookDelta = mouse.delta.ReadValue();
-            cameraYaw += lookDelta.x * 0.12f;
-            cameraPitch = Mathf.Clamp(cameraPitch - lookDelta.y * 0.08f, 5f, 35f);
+            float speed = player.IsRunning ? 4.1f : 2.7f;
+            MovePlayer(movement * speed * deltaTime);
+            player.AnimationTime += deltaTime * (player.IsRunning ? 12f : 7f);
         }
 
-        Quaternion moveRotation = Quaternion.Euler(0f, cameraYaw, 0f);
-        Vector3 moveDirection = moveRotation * new Vector3(movement.x, 0f, movement.y);
-        float speed = 5f * (1f + Mathf.Max(0, abilities[3] - 10) * 0.025f);
-        if (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed)
-        {
-            speed *= 1.5f;
-        }
-
-        if (playerController.isGrounded && playerVelocity.y < 0f)
-        {
-            playerVelocity.y = -2f;
-        }
-        playerVelocity.y -= 20f * Time.deltaTime;
-        playerController.Move((moveDirection * speed + Vector3.up * playerVelocity.y) * Time.deltaTime);
-        player.position = new Vector3(
-            Mathf.Clamp(player.position.x, -23f, 23f),
-            player.position.y,
-            Mathf.Clamp(player.position.z, -23f, 23f));
-
-        UpdateAimPoint();
         if (mouse != null && mouse.leftButton.isPressed && fireCooldown <= 0f)
         {
             FireRifle();
         }
+
+        if ((keyboard.spaceKey.wasPressedThisFrame || (mouse != null && mouse.rightButton.wasPressedThisFrame)))
+        {
+            MeleeAttack();
+        }
     }
 
-    private void UpdateAimPoint()
+    private void MovePlayer(Vector2 delta)
     {
-        Mouse mouse = Mouse.current;
-        if (mouse == null || gameCamera == null)
+        Vector2 position = ActorPosition(player);
+        TryMove(player, position + Vector2.right * delta.x);
+        position = ActorPosition(player);
+        TryMove(player, position + Vector2.up * delta.y);
+    }
+
+    private void TryMove(Actor actor, Vector2 position)
+    {
+        if (position.x < RoomMinX || position.x > RoomMaxX || position.y < RoomMinY || position.y > RoomMaxY)
         {
-            aimPoint = player.position + player.forward * 10f;
             return;
         }
 
-        Ray aimRay = gameCamera.ScreenPointToRay(mouse.position.ReadValue());
-        Plane aimPlane = new Plane(Vector3.up, Vector3.up * 0.9f);
-        if (aimPlane.Raycast(aimRay, out float distance))
+        Collider2D[] overlaps = Physics2D.OverlapCircleAll(position, 0.22f);
+        foreach (Collider2D overlap in overlaps)
         {
-            aimPoint = aimRay.GetPoint(distance);
-        }
-        else
-        {
-            aimPoint = player.position + player.forward * 10f;
+            if (furnitureColliders.Contains(overlap))
+            {
+                return;
+            }
         }
 
-        Vector3 facing = aimPoint - player.position;
-        facing.y = 0f;
-        if (facing.sqrMagnitude > 0.01f)
-        {
-            player.rotation = Quaternion.LookRotation(facing);
-        }
+        actor.Root.transform.position = new Vector3(position.x, position.y, actor.Root.transform.position.z);
     }
 
     private void FireRifle()
     {
-        fireCooldown = 0.2f;
-        Vector3 muzzle = player.position + Vector3.up * 1.25f + player.forward * 0.55f;
-        Vector3 direction = aimPoint - muzzle;
-        if (direction.sqrMagnitude < 0.05f)
+        fireCooldown = 0.28f;
+        player.ActionTime = 0.22f;
+        Vector2 origin = ActorPosition(player) + Vector2.up * 1.36f + player.Facing * 0.35f;
+        Vector2 direction = aimPoint - origin;
+        if (direction.sqrMagnitude < 0.01f)
         {
-            direction = player.forward;
+            direction = player.Facing;
         }
 
-        Ray shot = new Ray(muzzle, direction.normalized);
-        Vector3 end = muzzle + shot.direction * 80f;
-        if (Physics.Raycast(shot, out RaycastHit hit, 80f, ~(1 << 2)))
+        direction.Normalize();
+        GameObject bulletObject = new GameObject("Rustline Rifle projectile");
+        bulletObject.transform.position = new Vector3(origin.x, origin.y, -0.5f);
+        bulletObject.transform.right = new Vector3(direction.x, direction.y, 0f);
+        bulletObject.transform.localScale = new Vector3(0.32f, 0.105f, 1f);
+        SpriteRenderer renderer = bulletObject.AddComponent<SpriteRenderer>();
+        renderer.sprite = bulletSprite;
+        renderer.color = new Color(1f, 0.83f, 0.43f);
+        renderer.sortingOrder = 8000;
+
+        projectiles.Add(new Projectile
         {
-            end = hit.point;
-            if (raidersByCollider.TryGetValue(hit.collider, out Raider raider))
+            Root = bulletObject,
+            Position = origin,
+            Direction = direction,
+            Remaining = 1.2f,
+            Damage = boostRemaining > 0f ? 38f : 28f
+        });
+    }
+
+    private void MeleeAttack()
+    {
+        player.ActionTime = 0.38f;
+        Vector2 origin = ActorPosition(player);
+        bool hit = false;
+        foreach (Actor raider in raiders)
+        {
+            Vector2 offset = ActorPosition(raider) - origin;
+            if (offset.magnitude > 1.35f || Vector2.Dot(player.Facing, offset.normalized) < -0.1f)
             {
-                float statScale = 1f + (abilities[0] - 10) * 0.025f;
-                float equipmentScale = 1f + (rifleProficiency - 1) * 0.06f;
-                float boostScale = boostRemaining > 0f ? 1.55f : 1f;
-                raider.Health -= 22f * statScale * equipmentScale * boostScale;
-                proficiencyProgress += 8;
-                if (proficiencyProgress >= rifleProficiency * 80 && rifleProficiency < 5)
-                {
-                    proficiencyProgress = 0;
-                    rifleProficiency++;
-                }
-
-                if (raider.Health <= 0f)
-                {
-                    KillRaider(raider);
-                }
+                continue;
             }
+
+            DamageRaider(raider, 24f, ActorPosition(raider));
+            hit = true;
         }
 
-        CreateTracer(muzzle, end);
+        Vector2 effectPosition = origin + player.Facing * 0.75f + Vector2.up * 0.8f;
+        CreateEffect(effectPosition, hit ? new Color(1f, 0.76f, 0.36f) : new Color(0.72f, 0.81f, 0.78f), 0.52f, 0.18f);
     }
 
-    private void CreateTracer(Vector3 start, Vector3 end)
+    private void UpdateRaiders(float deltaTime)
     {
-        GameObject tracerObject = new GameObject("Rifle Tracer");
-        LineRenderer line = tracerObject.AddComponent<LineRenderer>();
-        line.useWorldSpace = true;
-        line.positionCount = 2;
-        line.SetPosition(0, start);
-        line.SetPosition(1, end);
-        line.startWidth = 0.025f;
-        line.endWidth = 0.008f;
-        line.sharedMaterial = tracerMaterial;
-        line.startColor = Color.white;
-        line.endColor = new Color(1f, 0.53f, 0.18f, 0.1f);
-        Destroy(tracerObject, 0.06f);
-    }
-
-    private void KillRaider(Raider raider)
-    {
-        raidersByCollider.Remove(raider.Collider);
-        raiders.Remove(raider);
-        Destroy(raider.Root);
-        kills++;
-        credits += 18;
-        xp += 15;
-        if (kills >= 6)
-        {
-            scrapyardComplete = true;
-        }
-    }
-
-    private void UpdateRaiders()
-    {
+        Vector2 playerPosition = ActorPosition(player);
         for (int i = raiders.Count - 1; i >= 0; i--)
         {
-            Raider raider = raiders[i];
+            Actor raider = raiders[i];
             if (raider.Root == null)
             {
-                raidersByCollider.Remove(raider.Collider);
                 raiders.RemoveAt(i);
                 continue;
             }
 
-            Vector3 toPlayer = player.position - raider.Root.transform.position;
-            toPlayer.y = 0f;
-            float distance = toPlayer.magnitude;
-            if (distance > 1.55f)
+            if (raider.WakeTimer > 0f)
             {
-                Vector3 direction = toPlayer.normalized;
-                raider.Root.transform.position += direction * 2.2f * Time.deltaTime;
-                raider.Root.transform.rotation = Quaternion.LookRotation(direction);
-            }
-            else
-            {
-                raider.AttackTimer -= Time.deltaTime;
-                if (raider.AttackTimer <= 0f)
-                {
-                    float resistance = Mathf.Clamp((abilities[4] - 10) * 0.02f, 0f, 0.35f);
-                    health = Mathf.Max(0f, health - 9f * (1f - resistance));
-                    raider.AttackTimer = 1.25f;
-                }
-            }
-        }
-    }
-
-    private void UpdateFuelCells()
-    {
-        for (int i = fuelCells.Count - 1; i >= 0; i--)
-        {
-            GameObject cell = fuelCells[i];
-            if (cell == null)
-            {
-                fuelCells.RemoveAt(i);
+                raider.WakeTimer -= deltaTime;
                 continue;
             }
 
-            cell.transform.Rotate(0f, 45f * Time.deltaTime, 0f, Space.World);
-            Vector3 cellPosition = cell.transform.position;
-            Vector3 playerPosition = player.position;
-            cellPosition.y = 0f;
-            playerPosition.y = 0f;
-            if (Vector3.Distance(cellPosition, playerPosition) < 1.3f)
+            Vector2 position = ActorPosition(raider);
+            Vector2 toPlayer = playerPosition - position;
+            float distance = toPlayer.magnitude;
+            if (distance > 0.85f)
             {
-                fuelCells.RemoveAt(i);
-                Destroy(cell);
-                fuelCollected++;
-                credits += 25;
-                bioCalories = Mathf.Min(100f, bioCalories + 20f);
-                if (fuelCollected >= 3)
+                Vector2 direction = toPlayer.normalized;
+                foreach (Actor other in raiders)
                 {
-                    fuelContractComplete = true;
+                    if (other == raider)
+                    {
+                        continue;
+                    }
+
+                    Vector2 separation = position - ActorPosition(other);
+                    float separationDistance = separation.magnitude;
+                    if (separationDistance < 1.25f && separationDistance > 0.001f)
+                    {
+                        direction += separation / separationDistance * ((1.25f - separationDistance) * 1.8f);
+                    }
+                }
+
+                direction.Normalize();
+                SetFacing(raider, direction);
+                float speed = 1.1f;
+                if (!TryMoveRaider(raider, position + direction * speed * deltaTime))
+                {
+                    Vector2 sidestep = new Vector2(-direction.y, direction.x);
+                    if (!TryMoveRaider(raider, position + sidestep * speed * deltaTime))
+                    {
+                        TryMoveRaider(raider, position - sidestep * speed * deltaTime);
+                    }
+                }
+
+                raider.AnimationTime += deltaTime * 6f;
+            }
+            else
+            {
+                raider.AttackTimer -= deltaTime;
+                if (raider.AttackTimer <= 0f)
+                {
+                    raider.AttackTimer = 1.65f;
+                    raider.ActionTime = 0.52f;
+                    health = Mathf.Max(0f, health - 5.5f);
+                    CreateEffect(playerPosition + Vector2.up * 0.8f, new Color(1f, 0.26f, 0.16f), 0.48f, 0.24f);
                 }
             }
         }
     }
 
-    private void UpdateContracts(float deltaTime)
+    private bool TryMoveRaider(Actor raider, Vector2 position)
     {
-        if (!ambushStarted && (scrapyardComplete || fuelContractComplete))
+        if (position.x < RoomMinX || position.x > RoomMaxX || position.y < RoomMinY || position.y > RoomMaxY)
         {
-            ambushStarted = true;
-            ambushTime = 0f;
-            SpawnRaider(new Vector3(-16f, 1f, 18f));
-            SpawnRaider(new Vector3(16f, 1f, 18f));
-            SpawnRaider(new Vector3(0f, 1f, -20f));
+            return false;
         }
 
-        if (!ambushStarted || ambushComplete)
+        foreach (Collider2D overlap in Physics2D.OverlapCircleAll(position, 0.23f))
+        {
+            if (furnitureColliders.Contains(overlap))
+            {
+                return false;
+            }
+        }
+
+        raider.Root.transform.position = new Vector3(position.x, position.y, raider.Root.transform.position.z);
+        return true;
+    }
+
+    private void UpdateProjectiles(float deltaTime)
+    {
+        for (int i = projectiles.Count - 1; i >= 0; i--)
+        {
+            Projectile projectile = projectiles[i];
+            Vector2 previous = projectile.Position;
+            projectile.Position += projectile.Direction * 17f * deltaTime;
+            projectile.Remaining -= deltaTime;
+            projectile.Root.transform.position = new Vector3(projectile.Position.x, projectile.Position.y, -0.5f);
+
+            RaycastHit2D blocker = Physics2D.Linecast(previous, projectile.Position);
+            if (blocker.collider != null && furnitureColliders.Contains(blocker.collider))
+            {
+                CreateEffect(blocker.point, new Color(1f, 0.78f, 0.42f), 0.28f, 0.16f);
+                Destroy(projectile.Root);
+                projectiles.RemoveAt(i);
+                continue;
+            }
+
+            Actor target = null;
+            foreach (Actor raider in raiders)
+            {
+                Vector2 targetPosition = ActorPosition(raider) + Vector2.up * 1.05f;
+                if (DistanceToSegment(targetPosition, previous, projectile.Position) < 0.43f)
+                {
+                    target = raider;
+                    break;
+                }
+            }
+
+            if (target != null)
+            {
+                DamageRaider(target, projectile.Damage, projectile.Position);
+                Destroy(projectile.Root);
+                projectiles.RemoveAt(i);
+            }
+            else if (projectile.Remaining <= 0f || projectile.Position.x < RoomMinX || projectile.Position.x > RoomMaxX ||
+                     projectile.Position.y < RoomMinY || projectile.Position.y > RoomMaxY)
+            {
+                Destroy(projectile.Root);
+                projectiles.RemoveAt(i);
+            }
+        }
+    }
+
+    private static float DistanceToSegment(Vector2 point, Vector2 start, Vector2 end)
+    {
+        Vector2 segment = end - start;
+        float lengthSquared = segment.sqrMagnitude;
+        if (lengthSquared < 0.0001f)
+        {
+            return Vector2.Distance(point, start);
+        }
+
+        float t = Mathf.Clamp01(Vector2.Dot(point - start, segment) / lengthSquared);
+        return Vector2.Distance(point, start + segment * t);
+    }
+
+    private void DamageRaider(Actor raider, float damage, Vector2 impactPosition)
+    {
+        if (raider == null || !raiders.Contains(raider))
         {
             return;
         }
 
-        ambushTime += deltaTime;
-        ambushSpawnTimer += deltaTime;
-        if (ambushSpawnTimer >= 4f && raiders.Count < 9)
+        raider.Health -= damage;
+        raider.Renderer.color = Color.white;
+        raider.ActionTime = 0.12f;
+        CreateEffect(impactPosition, new Color(1f, 0.62f, 0.3f), 0.34f, 0.2f);
+        if (raider.Health <= 0f)
         {
-            ambushSpawnTimer = 0f;
-            Vector2 offset = Random.insideUnitCircle.normalized * Random.Range(13f, 18f);
-            SpawnRaider(new Vector3(
-                Mathf.Clamp(player.position.x + offset.x, -21f, 21f),
-                1f,
-                Mathf.Clamp(player.position.z + offset.y, -21f, 21f)));
-        }
-
-        if (ambushTime >= AmbushDuration)
-        {
-            ambushComplete = true;
-            credits += 100;
-            xp += 50;
+            raiders.Remove(raider);
+            Destroy(raider.Root);
+            kills++;
+            credits += 22;
+            xp += 15;
+            if (kills == ContractGoal)
+            {
+                credits += 100;
+                ShowMessage("BOUNTY COMPLETE // +100 credits");
+            }
         }
     }
 
-    private void UpdateVitals(float deltaTime)
+    private void UpdateActors(float deltaTime)
     {
-        maxHealth = 100f + Mathf.Max(0, abilities[4] - 12) * 4f;
-        health = Mathf.Min(maxHealth, health + deltaTime * 1.2f);
-        bioCalories = Mathf.Min(100f, bioCalories + deltaTime * 3.5f);
-
-        if (health <= 0f)
+        UpdateActor(player, deltaTime);
+        UpdateActor(fixer, deltaTime);
+        foreach (Actor raider in raiders)
         {
-            health = maxHealth;
-            playerController.enabled = false;
-            player.position = new Vector3(0f, 1f, 0f);
-            playerController.enabled = true;
-            credits = Mathf.Max(0, credits - 15);
+            UpdateActor(raider, deltaTime);
+            if (raider.HealthFill != null && raider.HealthBack != null)
+            {
+                float healthFraction = Mathf.Clamp01(raider.Health / 56f);
+                raider.HealthFill.transform.localScale = new Vector3(healthFraction, 0.72f, 1f);
+                raider.HealthFill.color = Color.Lerp(new Color(0.85f, 0.17f, 0.12f), new Color(0.92f, 0.7f, 0.3f), 1f - healthFraction);
+            }
         }
     }
 
-    private void UpdateLevel()
+    private void UpdateActor(Actor actor, float deltaTime)
     {
-        while (xp >= xpToNext)
+        if (actor == null || actor.Root == null)
         {
-            xp -= xpToNext;
-            level++;
-            skillPoints++;
-            xpToNext = Mathf.RoundToInt(xpToNext * 1.45f);
+            return;
+        }
+
+        actor.ActionTime = Mathf.Max(0f, actor.ActionTime - deltaTime);
+        Vector2 position = ActorPosition(actor);
+        actor.Renderer.sortingOrder = SortOrder(position.y);
+        actor.Renderer.flipX = actor.Facing.x < -0.05f;
+        if (actor.IsPlayer)
+        {
+            actor.Renderer.color = boostRemaining > 0f
+                ? new Color(0.65f, 0.92f, 1f)
+                : (actor.ActionTime > 0f && health < 40f ? new Color(1f, 0.65f, 0.6f) : Color.white);
+        }
+        else if (actor.IsRaider && actor.ActionTime <= 0f)
+        {
+            actor.Renderer.color = new Color(1f, 0.58f, 0.43f);
+        }
+
+        int pose;
+        if (actor.ActionTime > 0f)
+        {
+            pose = actor.IsRaider || actor.IsPlayer ? (actor.IsPlayer && fireCooldown > 0.08f ? 5 + ((int)(Time.time * 18f) % 2) : 7) : 0;
+        }
+        else if (actor.IsPlayer && Mouse.current != null && Mouse.current.leftButton.isPressed && fireCooldown > 0f)
+        {
+            pose = 5 + ((int)(Time.time * 18f) % 2);
+        }
+        else if (actor.IsPlayer && player.IsRunning)
+        {
+            pose = 3 + ((int)(actor.AnimationTime / 0.12f) % 2);
+        }
+        else if (actor.IsPlayer && ActorPosition(player) != Vector2.zero && PlayerIsMoving())
+        {
+            pose = 1 + ((int)(actor.AnimationTime / 0.14f) % 2);
+        }
+        else if (actor.IsRaider && raiderIsMoving(actor))
+        {
+            pose = 1 + ((int)(actor.AnimationTime / 0.18f) % 2);
+        }
+        else
+        {
+            pose = 0;
+        }
+
+        actor.Renderer.sprite = actor == fixer
+            ? mechanicSprite
+            : (actor.IsRaider ? raiderFrames[pose] : operatorFrames[pose]);
+        if (actor.IsRaider && actor.HealthBack != null)
+        {
+            actor.HealthBack.sortingOrder = actor.Renderer.sortingOrder + 20;
+            actor.HealthFill.sortingOrder = actor.Renderer.sortingOrder + 21;
         }
     }
 
-    private int ImplantSlots => Mathf.Min(8, 2 + (level - 1) / 3);
+    private bool PlayerIsMoving()
+    {
+        Keyboard keyboard = Keyboard.current;
+        return keyboard != null &&
+               (keyboard.aKey.isPressed || keyboard.dKey.isPressed || keyboard.wKey.isPressed || keyboard.sKey.isPressed ||
+                keyboard.leftArrowKey.isPressed || keyboard.rightArrowKey.isPressed ||
+                keyboard.upArrowKey.isPressed || keyboard.downArrowKey.isPressed);
+    }
+
+    private bool raiderIsMoving(Actor actor)
+    {
+        return actor.WakeTimer <= 0f && Vector2.Distance(ActorPosition(actor), ActorPosition(player)) > 0.9f;
+    }
+
+    private void UpdateEffects(float deltaTime)
+    {
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            Effect effect = effects[i];
+            effect.Remaining -= deltaTime;
+            if (effect.Remaining <= 0f)
+            {
+                Destroy(effect.Root);
+                effects.RemoveAt(i);
+                continue;
+            }
+
+            float progress = 1f - effect.Remaining / effect.Duration;
+            float scale = effect.InitialScale * Mathf.Lerp(0.55f, 1.65f, progress);
+            effect.Root.transform.localScale = new Vector3(scale, scale, 1f);
+            Color color = effect.Renderer.color;
+            color.a = 1f - progress;
+            effect.Renderer.color = color;
+        }
+    }
+
+    private void CreateEffect(Vector2 position, Color color, float scale, float duration)
+    {
+        GameObject effectObject = new GameObject("Combat impact");
+        effectObject.transform.position = new Vector3(position.x, position.y, -0.7f);
+        effectObject.transform.localScale = new Vector3(scale, scale, 1f);
+        SpriteRenderer renderer = effectObject.AddComponent<SpriteRenderer>();
+        renderer.sprite = impactSprite;
+        renderer.color = color;
+        renderer.sortingOrder = 9000;
+        effects.Add(new Effect
+        {
+            Root = effectObject,
+            Renderer = renderer,
+            Remaining = duration,
+            Duration = duration,
+            InitialScale = scale
+        });
+    }
+
+    private void ResetPlayer()
+    {
+        player.Root.transform.position = new Vector3(-0.2f, -2.72f, player.Root.transform.position.z);
+        player.Facing = Vector2.right;
+        player.ActionTime = 0f;
+        player.AnimationTime = 0f;
+        player.IsRunning = false;
+        foreach (Actor raider in raiders)
+        {
+            if (raider.Root != null)
+            {
+                Destroy(raider.Root);
+            }
+        }
+
+        raiders.Clear();
+        SpawnRaiders();
+        foreach (Projectile projectile in projectiles)
+        {
+            Destroy(projectile.Root);
+        }
+
+        projectiles.Clear();
+        foreach (Effect effect in effects)
+        {
+            Destroy(effect.Root);
+        }
+
+        effects.Clear();
+        health = 100f;
+        kills = 0;
+        credits = 120;
+        xp = 0;
+        fireCooldown = 0f;
+        focusRemaining = 0f;
+        focusCooldown = 0f;
+        boostRemaining = 0f;
+        boostCooldown = 0f;
+        Time.timeScale = 1f;
+        gameOver = false;
+    }
+
+    private void ShowMessage(string message)
+    {
+        fixerMessage = message;
+        fixerMessageTime = 2.5f;
+    }
+
+    private static Vector2 ActorPosition(Actor actor)
+    {
+        return actor == null || actor.Root == null ? Vector2.zero : actor.Root.transform.position;
+    }
+
+    private static int SortOrder(float y)
+    {
+        return Mathf.RoundToInt(-y * 100f);
+    }
+
+    private static void SetFacing(Actor actor, Vector2 facing)
+    {
+        actor.Facing = facing;
+    }
+
+    private void OnDisable()
+    {
+        Time.timeScale = 1f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void OnDestroy()
+    {
+        foreach (UnityEngine.Object generatedAsset in generatedAssets)
+        {
+            if (generatedAsset != null)
+            {
+                Destroy(generatedAsset);
+            }
+        }
+    }
 
     private void OnGUI()
     {
-        if (player == null)
+        if (player == null || player.Root == null)
         {
             return;
         }
 
         GUIStyle title = new GUIStyle(GUI.skin.label)
         {
-            fontSize = 18,
+            fontSize = 22,
             fontStyle = FontStyle.Bold,
-            normal = { textColor = new Color(0.42f, 0.94f, 1f) }
+            normal = { textColor = new Color(1f, 0.79f, 0.48f) }
         };
-        GUIStyle section = new GUIStyle(GUI.skin.label)
+        GUIStyle heading = new GUIStyle(GUI.skin.label)
         {
-            fontSize = 13,
+            fontSize = 15,
             fontStyle = FontStyle.Bold,
-            normal = { textColor = new Color(0.78f, 0.87f, 0.95f) }
+            normal = { textColor = new Color(0.56f, 0.9f, 0.88f) }
+        };
+        GUIStyle body = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 16,
+            normal = { textColor = new Color(0.88f, 0.87f, 0.79f) }
         };
 
-        GUILayout.BeginArea(new Rect(16f, 16f, 355f, 565f), GUI.skin.box);
-        GUILayout.Label("CHRYSALIS: ZERO  //  RUSTHOLLOW", title);
-        GUILayout.Label($"Level {level}     XP {xp}/{xpToNext}     Credits {credits}");
-        DrawMeter("Hull", health, maxHealth, new Color(0.35f, 0.9f, 0.62f));
-        DrawMeter("Bio-Calories", bioCalories, 100f, new Color(0.32f, 0.75f, 1f));
-        DrawMeter("Ghost-Bleed", ghostBleed, 100f, new Color(1f, 0.47f, 0.36f));
-        GUILayout.Label($"Implant slots unlocked: {ImplantSlots}  ( +1 every 3 levels )");
-        GUILayout.Label($"Rustline Rifle proficiency: {rifleProficiency}/5  |  +6% damage per rank");
+        GUILayout.BeginArea(new Rect(16f, 16f, 360f, 210f), GUI.skin.box);
+        GUILayout.Label("CHRYSALIS: ZERO", title);
+        GUILayout.Label("THE RUSTED HALO  //  RUSTHOLLOW", heading);
+        DrawMeter("HEALTH", health, 100f, new Color(0.35f, 0.82f, 0.58f));
+        GUILayout.Space(4f);
+        GUILayout.Label(kills >= ContractGoal
+            ? "BOUNTY  COMPLETE    //    +100 CREDITS"
+            : $"BOUNTY  Clear raiders    {Mathf.Min(kills, ContractGoal)}/{ContractGoal}", body);
+        GUILayout.Label($"CREDITS  {credits}       XP  {xp}", body);
+        GUILayout.EndArea();
 
-        GUILayout.Space(5f);
-        GUILayout.Label($"Core Abilities  |  Skill points: {skillPoints}", section);
-        for (int i = 0; i < abilities.Length; i++)
+        GUILayout.BeginArea(new Rect(Screen.width - 346f, 16f, 330f, 210f), GUI.skin.box);
+        GUILayout.Label("FIELD CONTROLS", heading);
+        GUILayout.Label("WASD / Arrows   Move", body);
+        GUILayout.Label("Mouse   Aim", body);
+        GUILayout.Label("Left click   Fire Rustline Rifle", body);
+        GUILayout.Label("Right click / Space   Melee", body);
+        GUILayout.Label("Shift   Run   |   Q   Tactical Focus", body);
+        GUILayout.Label("E   Bio-Boost   |   F   Talk to Mara", body);
+        GUILayout.EndArea();
+
+        if (fixer != null && fixer.Root != null)
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label($"{abilityNames[i]}: {abilities[i]}", GUILayout.Width(235f));
-            GUI.enabled = skillPoints > 0;
-            if (GUILayout.Button("+1", GUILayout.Width(55f)))
+            Vector3 fixerScreen = gameCamera.WorldToScreenPoint(fixer.Root.transform.position + Vector3.up * 2.5f);
+            if (fixerScreen.z > 0f)
             {
-                abilities[i]++;
-                skillPoints--;
+                GUIStyle nameStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontSize = 14,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = new Color(1f, 0.82f, 0.56f) }
+                };
+                GUI.Label(new Rect(fixerScreen.x - 100f, Screen.height - fixerScreen.y - 20f, 200f, 24f), "MARA  //  FIXER", nameStyle);
             }
-            GUI.enabled = true;
-            GUILayout.EndHorizontal();
         }
 
-        GUILayout.Space(5f);
-        GUILayout.Label("Bounty Terminal", section);
-        DrawContract("Scrapyard Sweep", $"{Mathf.Min(kills, 6)}/6 raiders", scrapyardComplete);
-        DrawContract("Fuel Cell Recovery", $"{Mathf.Min(fuelCollected, 3)}/3 cells", fuelContractComplete);
-        string ambushProgress = !ambushStarted
-            ? "Unlock by completing either contract above"
-            : ambushComplete
-                ? "Complete"
-                : $"{Mathf.Min(AmbushDuration, ambushTime):0}/{AmbushDuration:0}s survived";
-        DrawContract("Hold the Line", ambushProgress, ambushComplete);
-        GUILayout.EndArea();
+        if (fixerMessageVisible)
+        {
+            GUIStyle messageStyle = new GUIStyle(GUI.skin.box)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 16,
+                normal = { textColor = new Color(1f, 0.9f, 0.72f) }
+            };
+            GUI.Label(new Rect(Screen.width * 0.28f, Screen.height - 98f, Screen.width * 0.44f, 42f), fixerMessage, messageStyle);
+        }
 
-        GUILayout.BeginArea(new Rect(Screen.width - 300f, 16f, 284f, 142f), GUI.skin.box);
-        GUILayout.Label("FIELD CONTROLS", section);
-        GUILayout.Label("WASD / Arrows  Move");
-        GUILayout.Label("Mouse  Aim  |  Left click  Fire");
-        GUILayout.Label("Q  Tactical Focus (slow time)");
-        GUILayout.Label("E  Bio-Boost  |  Shift  Sprint");
-        GUILayout.Label("Right mouse drag  Orbit camera");
-        GUILayout.EndArea();
+        if (gameOver)
+        {
+            GUIStyle gameOverStyle = new GUIStyle(GUI.skin.box)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 20,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white }
+            };
+            GUI.Label(new Rect(Screen.width * 0.33f, Screen.height * 0.4f, Screen.width * 0.34f, 100f),
+                "OPERATOR DOWN\nPress R to get back up", gameOverStyle);
+        }
 
         DrawReticle();
     }
 
     private static void DrawMeter(string label, float value, float maximum, Color color)
     {
-        GUILayout.Label($"{label}: {Mathf.CeilToInt(value)}/{Mathf.CeilToInt(maximum)}");
-        Rect rect = GUILayoutUtility.GetRect(300f, 10f);
-        GUI.color = new Color(0f, 0f, 0f, 0.65f);
+        GUILayout.Label($"{label}  {Mathf.CeilToInt(value)}/{Mathf.CeilToInt(maximum)}");
+        Rect rect = GUILayoutUtility.GetRect(320f, 12f);
+        GUI.color = new Color(0.04f, 0.05f, 0.05f, 0.9f);
         GUI.DrawTexture(rect, Texture2D.whiteTexture);
         rect.width *= maximum <= 0f ? 0f : Mathf.Clamp01(value / maximum);
         GUI.color = color;
         GUI.DrawTexture(rect, Texture2D.whiteTexture);
-        GUI.color = Color.white;
-    }
-
-    private static void DrawContract(string title, string progress, bool complete)
-    {
-        GUI.color = complete ? new Color(0.55f, 1f, 0.68f) : Color.white;
-        GUILayout.Label($"{(complete ? "[DONE]" : "[ACTIVE]")} {title}");
-        GUI.color = new Color(0.68f, 0.78f, 0.88f);
-        GUILayout.Label("    " + progress);
         GUI.color = Color.white;
     }
 
@@ -683,10 +1049,10 @@ public sealed class RusthollowDemo : MonoBehaviour
             return;
         }
 
-        Vector2 pointerPosition = mouse.position.ReadValue();
-        float x = pointerPosition.x;
-        float y = Screen.height - pointerPosition.y;
-        GUI.color = new Color(0.65f, 0.96f, 1f, 0.9f);
+        Vector2 pointer = mouse.position.ReadValue();
+        float x = pointer.x;
+        float y = Screen.height - pointer.y;
+        GUI.color = new Color(1f, 0.78f, 0.43f, 0.95f);
         GUI.DrawTexture(new Rect(x - 9f, y - 1f, 18f, 2f), Texture2D.whiteTexture);
         GUI.DrawTexture(new Rect(x - 1f, y - 9f, 2f, 18f), Texture2D.whiteTexture);
         GUI.color = Color.white;
