@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CHRYSALIS: ZERO — Milestone 1 Demo</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow">RUSTHOLLOW // BOUNTY TERMINAL</div>
+          <h1>CHRYSALIS: ZERO</h1>
+        </div>
+        <div class="status-strip">
+          <span>Milestone 1 Demo</span>
+          <span>Act I // Rusthollow</span>
+        </div>
+      </div>
+
+      <main class="game-layout">
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+        <aside class="hud-panel">
+          <section class="panel-box">
+            <div class="box-header">Operator</div>
+            <div class="stat-line">
+              <span>Level</span>
+              <strong id="playerLevel">1</strong>
+            </div>
+            <div class="stat-line">
+              <span>Implant slots</span>
+              <strong id="implantSlots">2/2</strong>
+            </div>
+            <div class="stat-line">
+              <span>Credits</span>
+              <strong id="credits">120</strong>
+            </div>
+
+            <div class="meter-group">
+              <label>Hull</label>
+              <div class="meter"><span id="healthBar" class="meter-fill health"></span></div>
+            </div>
+            <div class="meter-group">
+              <label>Ghost-Bleed</label>
+              <div class="meter"><span id="ghostBar" class="meter-fill ghost"></span></div>
+            </div>
+            <div class="meter-group">
+              <label>Bio-Calories</label>
+              <div class="meter"><span id="bioBar" class="meter-fill bio"></span></div>
+            </div>
+            <div class="meter-group">
+              <label>XP</label>
+              <div class="meter"><span id="xpBar" class="meter-fill xp"></span></div>
+            </div>
+          </section>
+
+          <section class="panel-box">
+            <div class="box-header">Core Abilities</div>
+            <div id="abilityList" class="ability-list"></div>
+          </section>
+
+          <section class="panel-box">
+            <div class="box-header">Bounty Terminal</div>
+            <ul id="questList" class="quest-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
