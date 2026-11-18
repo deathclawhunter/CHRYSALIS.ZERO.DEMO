@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="wallLeft" x2="0.8" y2="1">
+      <stop stop-color="#343b3b"/><stop offset=".55" stop-color="#655746"/><stop offset="1" stop-color="#292c2b"/>
+    </linearGradient>
+    <linearGradient id="wallRight" x2=".8" y2="1">
+      <stop stop-color="#424441"/><stop offset=".55" stop-color="#625442"/><stop offset="1" stop-color="#292b29"/>
+    </linearGradient>
+    <linearGradient id="floorBase" x2=".2" y2="1">
+      <stop stop-color="#625b4d"/><stop offset=".48" stop-color="#46433c"/><stop offset="1" stop-color="#292b29"/>
+    </linearGradient>
+    <linearGradient id="neon" x2="1">
+      <stop stop-color="#d8964e"/><stop offset=".5" stop-color="#ffe2a0"/><stop offset="1" stop-color="#d77c43"/>
+    </linearGradient>
+    <radialGradient id="floorLight">
+      <stop stop-color="#d6a86e" stop-opacity=".24"/><stop offset="1" stop-color="#d6a86e" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="planksLeft" width="116" height="54" patternUnits="userSpaceOnUse" patternTransform="skewY(-20)">
+      <rect width="116" height="54" fill="#49443a"/>
+      <path d="M0 2h116M0 52h116M0 27h116M57 2v25m48 0v25" fill="none" stroke="#262724" stroke-width="5"/>
+      <path d="M5 8h46m12 0h46M5 33h47m12 0h45" fill="none" stroke="#827052" stroke-width="2" opacity=".55"/>
+      <path d="M17 16l18-2m49 25 22-2" stroke="#2d2b27" stroke-width="3" opacity=".7"/>
+    </pattern>
+    <pattern id="planksRight" width="116" height="54" patternUnits="userSpaceOnUse" patternTransform="skewY(20)">
+      <rect width="116" height="54" fill="#4a463c"/>
+      <path d="M0 2h116M0 52h116M0 27h116M57 2v25m48 0v25" fill="none" stroke="#282925" stroke-width="5"/>
+      <path d="M5 8h46m12 0h46M5 33h47m12 0h45" fill="none" stroke="#847255" stroke-width="2" opacity=".55"/>
+      <path d="M17 17l18-2m49 25 22-2" stroke="#302d28" stroke-width="3" opacity=".7"/>
+    </pattern>
+    <pattern id="diamondTiles" width="160" height="92" patternUnits="userSpaceOnUse">
+      <rect width="160" height="92" fill="#4c4941"/>
+      <path d="M0 46L80 0 160 46 80 92z" fill="#555046" stroke="#282a28" stroke-width="5"/>
+      <path d="M9 46L80 7l71 39-71 39z" fill="none" stroke="#80725d" stroke-width="2" opacity=".55"/>
+      <path d="M25 51l20-8m58 22 17-9m-84-22 16-8" fill="none" stroke="#302e29" stroke-width="3" opacity=".72"/>
+      <circle cx="80" cy="46" r="2" fill="#a18d6a" opacity=".55"/>
+    </pattern>
+    <filter id="softShadow" x="-.3" y="-.3" width="1.6" height="1.6">
+      <feGaussianBlur stdDeviation="13"/>
+    </filter>
+    <radialGradient id="vignette">
+      <stop offset=".52" stop-color="#090c0d" stop-opacity="0"/>
+      <stop offset="1" stop-color="#080b0c" stop-opacity=".52"/>
+    </radialGradient>
+    <clipPath id="floorClip">
+      <path d="M960 200 1780 540 960 880 140 540z"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#141819"/>
+  <path d="M92 541 960 185l868 356-868 356z" fill="#0c1010" opacity=".9" filter="url(#softShadow)"/>
+  <path d="M140 540 960 200V90L140 430z" fill="url(#wallLeft)" stroke="#171a19" stroke-width="18"/>
+  <path d="M960 200 1780 540V430L960 90z" fill="url(#wallRight)" stroke="#171a19" stroke-width="18"/>
+  <path d="M140 540 960 200V90L140 430z" fill="url(#planksLeft)" opacity=".55"/>
+  <path d="M960 200 1780 540V430L960 90z" fill="url(#planksRight)" opacity=".55"/>
+
+  <path d="M140 540 960 200 1780 540 960 880z" fill="url(#floorBase)" stroke="#171a19" stroke-width="26"/>
+  <path d="M140 540 960 200 1780 540 960 880z" fill="url(#diamondTiles)" opacity=".84"/>
+  <g clip-path="url(#floorClip)">
+    <ellipse cx="955" cy="480" rx="665" ry="350" fill="url(#floorLight)"/>
+    <path d="M480 331 960 506l480-175M323 416 960 650l637-234M166 502 960 792l794-290M166 606 960 897l794-291"
+          fill="none" stroke="#252724" stroke-width="8" opacity=".55"/>
+    <path d="M589 300 392 871m377-615L572 941m516-671L881 957m481-520-198 513m370-441-177 443"
+          fill="none" stroke="#242522" stroke-width="5" opacity=".65"/>
+    <path d="M430 544q58-33 119-8t29 34q-34 25-92 14t-56-40m779-45q47-30 106-11t38 34q-29 22-87 14t-57-37m-351 273q53-27 105-7t25 30q-36 17-84 10t-46-33"
+          fill="#292824" opacity=".48"/>
+    <path d="M700 395l-22 34 15 19-28 37 10 24m501 76 25 13-9 31 22 16-17 30m-900-99 27 9 10 24 24 8 8 24"
+          fill="none" stroke="#262724" stroke-width="6" opacity=".7"/>
+    <path d="M700 395l-22 34 15 19-28 37m501 76 25 13-9 31m-900-99 27 9 10 24"
+          fill="none" stroke="#b09a70" stroke-width="2" opacity=".22"/>
+  </g>
+
+  <path d="M140 540 960 200 1780 540" fill="none" stroke="#a27a48" stroke-width="12" opacity=".75"/>
+  <path d="M155 550 960 218l805 332M960 205V95m-700 454v-74m1400 74v-74"
+        fill="none" stroke="#151918" stroke-width="18"/>
+  <path d="M160 532 960 207l800 325" fill="none" stroke="#c3985d" stroke-width="3" opacity=".62"/>
+
+  <g opacity=".76">
+    <path d="M260 332q96-60 188-88t188-66v24q-89 39-178 69t-198 91z" fill="#d8a56a" opacity=".12"/>
+    <path d="M1100 219q111 41 216 85t183 77v24q-95-45-204-89t-200-76z" fill="#e1ae6d" opacity=".1"/>
+  </g>
+  <g>
+    <path d="M508 264 628 220l2 40-122 45z" fill="#282b29" stroke="#96754d" stroke-width="7"/>
+    <path d="M523 264l91-34v20l-91 35z" fill="#293d43"/>
+    <path d="M531 264l34-13m8 10 31-12m-48 38 26-10" fill="none" stroke="#8ca19b" stroke-width="3" opacity=".6"/>
+    <path d="M1245 266 1425 333v41l-180-67z" fill="#392f25" stroke="#927147" stroke-width="8"/>
+    <path d="M1262 274 1409 329v27l-147-54z" fill="#b5a078"/>
+    <path d="M1272 285l53 20m-53-4 111 42m-107-28 85 31" stroke="#54483a" stroke-width="4"/>
+    <path d="M818 135h284v76H818z" fill="#201e19" stroke="#a47b49" stroke-width="7"/>
+    <path d="M830 147h260v51H830z" fill="#29221b" stroke="#51402d" stroke-width="3"/>
+    <text x="960" y="180" text-anchor="middle" font-family="Georgia,serif" font-size="25" font-weight="bold" letter-spacing="3" fill="url(#neon)">THE RUSTED HALO</text>
+    <text x="960" y="193" text-anchor="middle" font-family="sans-serif" font-size="7" letter-spacing="2.4" fill="#8ca19b">HOT LEADS / COLD DRINKS</text>
+  </g>
+
+  <g fill="none" stroke="#171a19" stroke-width="15">
+    <path d="M158 376 915 98m88 0 756 280"/>
+    <path d="M202 394 202 477m315-203v87m900-53v90m311-14v82"/>
+  </g>
+  <g fill="#ffd28a">
+    <path d="M351 318l34-13 9 23-34 13z" opacity=".75"/>
+    <path d="M1518 339l36 13-8 22-36-14z" opacity=".75"/>
+    <path d="M812 159h13v7h-13zm283 0h13v7h-13z"/>
+  </g>
+
+  <path d="M140 540 960 200 1780 540 960 880z" fill="url(#vignette)"/>
+  <path d="M67 1023h1786" stroke="#a77c49" stroke-width="5" opacity=".28"/>
+</svg>

@@ -52,11 +52,11 @@ public sealed class RusthollowDemo : MonoBehaviour
     private readonly List<Sprite> raiderSideFrames = new List<Sprite>();
     private readonly Vector2[] startingRaiderPositions =
     {
-        new Vector2(-8f, 2.05f),
-        new Vector2(0f, 2.1f),
-        new Vector2(8f, 2.05f),
-        new Vector2(-7.7f, -4.05f),
-        new Vector2(7.7f, -4.05f)
+        new Vector2(-5.2f, -0.25f),
+        new Vector2(0f, 1.65f),
+        new Vector2(5.2f, -0.25f),
+        new Vector2(-4f, -1.25f),
+        new Vector2(4f, -1.25f)
     };
 
     private Camera gameCamera;
@@ -82,10 +82,8 @@ public sealed class RusthollowDemo : MonoBehaviour
     private string fixerMessage = "Mara: Keep the Rusted Halo standing.";
     private bool gameOver;
 
-    private const float RoomMinX = -8.45f;
-    private const float RoomMaxX = 8.45f;
-    private const float RoomMinY = -4.55f;
-    private const float RoomMaxY = 2.45f;
+    private const float RoomHalfWidth = 8.2f;
+    private const float RoomHalfDepth = 3.4f;
     private const int ContractGoal = 5;
 
     private void Start()
@@ -118,7 +116,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private bool LoadArt()
     {
-        Texture2D roomTexture = LoadTexture("room");
+        Texture2D roomTexture = LoadTexture("room-isometric");
         Texture2D propTexture = LoadTexture("props");
         Texture2D peopleTexture = LoadTexture("people");
         Texture2D peopleAnglesTexture = LoadTexture("people-angles");
@@ -293,17 +291,17 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void CreateFurniture()
     {
-        CreateProp("Backbar bottles", 4, new Vector2(-6.3f, 1.65f), new Vector2(2.4f, 1.92f), Vector2.zero);
-        CreateProp("The Rusted Halo bar", 0, new Vector2(-6.15f, -0.15f), new Vector2(2.7f, 2.15f), new Vector2(1.7f, 0.58f));
-        CreateProp("Salvage workbench", 1, new Vector2(-3.45f, 0.05f), new Vector2(2.35f, 1.86f), new Vector2(1.65f, 0.55f));
-        CreateProp("Bounty terminal", 2, new Vector2(5.4f, 1.35f), new Vector2(1.9f, 1.52f), new Vector2(0.92f, 0.72f));
-        CreateProp("Card table", 3, new Vector2(-1.85f, -0.65f), new Vector2(1.95f, 1.62f), new Vector2(1.2f, 0.62f));
-        CreateProp("Battered cot", 5, new Vector2(3.05f, 1.48f), new Vector2(2.25f, 1.8f), new Vector2(1.65f, 0.62f));
-        CreateProp("Salvage crates", 6, new Vector2(6.4f, -2.72f), new Vector2(2.12f, 1.7f), new Vector2(1.4f, 0.72f));
-        CreateProp("Bentwood chair", 7, new Vector2(0.15f, -3.55f), new Vector2(1.45f, 1.52f), new Vector2(0.8f, 0.58f));
+        CreateProp("Backbar bottles", 4, new Vector2(-5.7f, 1.15f), new Vector2(1.8f, 1.44f), Vector2.zero, 20f);
+        CreateProp("The Rusted Halo bar", 0, new Vector2(-5.45f, 0.05f), new Vector2(2.6f, 1.95f), new Vector2(1.7f, 0.58f), 20f);
+        CreateProp("Salvage workbench", 1, new Vector2(-3.3f, 0.85f), new Vector2(2.2f, 1.72f), new Vector2(1.5f, 0.5f), 20f);
+        CreateProp("Bounty terminal", 2, new Vector2(5.45f, 0.85f), new Vector2(1.8f, 1.44f), new Vector2(0.86f, 0.65f), -20f);
+        CreateProp("Card table", 3, new Vector2(0f, 0.2f), new Vector2(1.8f, 1.5f), new Vector2(1.1f, 0.58f));
+        CreateProp("Battered cot", 5, new Vector2(3.25f, 0.95f), new Vector2(2f, 1.6f), new Vector2(1.45f, 0.55f), -20f);
+        CreateProp("Salvage crates", 6, new Vector2(4.4f, -1.1f), new Vector2(1.9f, 1.52f), new Vector2(1.25f, 0.64f), 20f);
+        CreateProp("Bentwood chair", 7, new Vector2(-0.1f, -2.25f), new Vector2(1.3f, 1.36f), new Vector2(0.72f, 0.52f));
     }
 
-    private void CreateProp(string name, int spriteIndex, Vector2 position, Vector2 size, Vector2 colliderSize)
+    private void CreateProp(string name, int spriteIndex, Vector2 position, Vector2 size, Vector2 colliderSize, float rotation = 0f)
     {
         const float propWidth = 2.4f;
         const float propHeight = 1.92f;
@@ -311,6 +309,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         GameObject prop = new GameObject(name);
         prop.transform.position = new Vector3(position.x, position.y, 0f);
         prop.transform.localScale = scale;
+        prop.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
         SpriteRenderer renderer = prop.AddComponent<SpriteRenderer>();
         renderer.sprite = propSprites[spriteIndex];
         renderer.sortingOrder = SortOrder(position.y) + 1;
@@ -326,15 +325,15 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void CreateActors()
     {
-        player = CreateActor("Rustline Operator", new Vector2(-0.2f, -2.72f), true, false);
+        player = CreateActor("Rustline Operator", new Vector2(0f, -1.65f), true, false);
         player.Health = 100f;
         player.IsPlayer = true;
         player.Facing = Vector2.up;
 
-        fixer = CreateActor("Mara - salvage mechanic", new Vector2(-5.55f, -1.35f), false, false);
+        fixer = CreateActor("Mara - salvage mechanic", new Vector2(-4.2f, 0f), false, false);
         fixer.Renderer.sprite = mechanicSprite;
         fixer.Renderer.color = Color.white;
-        fixer.Facing = Vector2.down;
+        fixer.Facing = ActorPosition(player) - ActorPosition(fixer);
 
         SpawnRaiders();
     }
@@ -346,7 +345,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             Actor raider = CreateActor("Rusthollow Raider", position, false, true);
             raider.Health = 56f;
             raider.AttackTimer = Random.Range(1.35f, 2.2f);
-            raider.WakeTimer = 2.8f;
+            raider.WakeTimer = 3.5f;
             SetFacing(raider, ActorPosition(player) - position);
             raiders.Add(raider);
         }
@@ -356,6 +355,7 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         GameObject root = new GameObject(name);
         root.transform.position = new Vector3(position.x, position.y, -0.2f);
+        root.transform.localScale = Vector3.one * 0.56f;
         SpriteRenderer renderer = root.AddComponent<SpriteRenderer>();
         renderer.sprite = (isRaider ? raiderFrames : operatorFrames)[0];
         renderer.color = isRaider ? new Color(1f, 0.58f, 0.43f) : Color.white;
@@ -486,11 +486,15 @@ public sealed class RusthollowDemo : MonoBehaviour
             fixerMessageTime = 5f;
         }
 
-        Vector2 movement = Vector2.zero;
-        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) movement.x -= 1f;
-        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) movement.x += 1f;
-        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) movement.y += 1f;
-        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) movement.y -= 1f;
+        Vector2 inputDirection = Vector2.zero;
+        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) inputDirection.x -= 1f;
+        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) inputDirection.x += 1f;
+        if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) inputDirection.y += 1f;
+        if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) inputDirection.y -= 1f;
+        inputDirection = Vector2.ClampMagnitude(inputDirection, 1f);
+        Vector2 movement = new Vector2(
+            inputDirection.x - inputDirection.y,
+            (inputDirection.x + inputDirection.y) * 0.5f);
         movement = Vector2.ClampMagnitude(movement, 1f);
 
         player.IsRunning = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
@@ -499,7 +503,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             SetFacing(player, movement);
             float speed = player.IsRunning ? 4.1f : 2.7f;
             MovePlayer(movement * speed * deltaTime);
-            player.AnimationTime += deltaTime * (player.IsRunning ? 12f : 7f);
+            player.AnimationTime += deltaTime;
         }
 
         if (mouse != null && mouse.leftButton.isPressed && fireCooldown <= 0f)
@@ -523,7 +527,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void TryMove(Actor actor, Vector2 position)
     {
-        if (position.x < RoomMinX || position.x > RoomMaxX || position.y < RoomMinY || position.y > RoomMaxY)
+        if (!IsInsideRoom(position))
         {
             return;
         }
@@ -540,6 +544,11 @@ public sealed class RusthollowDemo : MonoBehaviour
         actor.Root.transform.position = new Vector3(position.x, position.y, actor.Root.transform.position.z);
     }
 
+    private static bool IsInsideRoom(Vector2 position)
+    {
+        return Mathf.Abs(position.x) / RoomHalfWidth + Mathf.Abs(position.y) / RoomHalfDepth <= 1f;
+    }
+
     private void FireRifle()
     {
         fireCooldown = 0.28f;
@@ -550,7 +559,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             SetFacing(player, aimDirection.normalized);
         }
 
-        Vector2 origin = ActorPosition(player) + Vector2.up * 1.36f + player.Facing * 0.35f;
+        Vector2 origin = ActorPosition(player) + Vector2.up * 0.78f + player.Facing * 0.2f;
         Vector2 direction = aimPoint - origin;
         if (direction.sqrMagnitude < 0.01f)
         {
@@ -620,7 +629,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             Vector2 position = ActorPosition(raider);
             Vector2 toPlayer = playerPosition - position;
             float distance = toPlayer.magnitude;
-            if (distance > 0.85f)
+            if (distance > 1.45f)
             {
                 Vector2 direction = toPlayer.normalized;
                 foreach (Actor other in raiders)
@@ -632,9 +641,9 @@ public sealed class RusthollowDemo : MonoBehaviour
 
                     Vector2 separation = position - ActorPosition(other);
                     float separationDistance = separation.magnitude;
-                    if (separationDistance < 1.25f && separationDistance > 0.001f)
+                    if (separationDistance < 1.7f && separationDistance > 0.001f)
                     {
-                        direction += separation / separationDistance * ((1.25f - separationDistance) * 1.8f);
+                        direction += separation / separationDistance * ((1.7f - separationDistance) * 2f);
                     }
                 }
 
@@ -650,7 +659,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                     }
                 }
 
-                raider.AnimationTime += deltaTime * 6f;
+                raider.AnimationTime += deltaTime;
             }
             else
             {
@@ -660,7 +669,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                     raider.AttackTimer = 1.65f;
                     raider.ActionTime = 0.52f;
                     health = Mathf.Max(0f, health - 5.5f);
-                    CreateEffect(playerPosition + Vector2.up * 0.8f, new Color(1f, 0.26f, 0.16f), 0.48f, 0.24f);
+                    CreateEffect(playerPosition + Vector2.up * 0.45f, new Color(1f, 0.26f, 0.16f), 0.36f, 0.24f);
                 }
             }
         }
@@ -668,9 +677,17 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private bool TryMoveRaider(Actor raider, Vector2 position)
     {
-        if (position.x < RoomMinX || position.x > RoomMaxX || position.y < RoomMinY || position.y > RoomMaxY)
+        if (!IsInsideRoom(position))
         {
             return false;
+        }
+
+        foreach (Actor other in raiders)
+        {
+            if (other != raider && Vector2.Distance(position, ActorPosition(other)) < 0.9f)
+            {
+                return false;
+            }
         }
 
         foreach (Collider2D overlap in Physics2D.OverlapCircleAll(position, 0.23f))
@@ -707,7 +724,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             Actor target = null;
             foreach (Actor raider in raiders)
             {
-                Vector2 targetPosition = ActorPosition(raider) + Vector2.up * 1.05f;
+                Vector2 targetPosition = ActorPosition(raider) + Vector2.up * 0.72f;
                 if (DistanceToSegment(targetPosition, previous, projectile.Position) < 0.43f)
                 {
                     target = raider;
@@ -721,8 +738,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                 Destroy(projectile.Root);
                 projectiles.RemoveAt(i);
             }
-            else if (projectile.Remaining <= 0f || projectile.Position.x < RoomMinX || projectile.Position.x > RoomMaxX ||
-                     projectile.Position.y < RoomMinY || projectile.Position.y > RoomMaxY)
+            else if (projectile.Remaining <= 0f || !IsInsideRoom(projectile.Position))
             {
                 Destroy(projectile.Root);
                 projectiles.RemoveAt(i);
@@ -796,9 +812,9 @@ public sealed class RusthollowDemo : MonoBehaviour
         Vector2 position = ActorPosition(actor);
         actor.Renderer.sortingOrder = SortOrder(position.y);
         List<Sprite> facingFrames = GetFramesForFacing(actor);
-        actor.Renderer.flipX = actor == fixer
-            ? false
-            : (IsSideFacing(actor.Facing) ? actor.Facing.x > 0f : actor.Facing.x < 0f);
+        actor.Renderer.flipX = IsSideFacing(actor.Facing)
+            ? actor.Facing.x > 0f
+            : actor.Facing.x < 0f;
         if (actor.IsPlayer)
         {
             actor.Renderer.color = boostRemaining > 0f
@@ -821,22 +837,22 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
         else if (actor.IsPlayer && player.IsRunning)
         {
-            pose = 3 + ((int)(actor.AnimationTime / 0.12f) % 2);
+            pose = 3 + ((int)(actor.AnimationTime / 0.14f) % 2);
         }
         else if (actor.IsPlayer && ActorPosition(player) != Vector2.zero && PlayerIsMoving())
         {
-            pose = 1 + ((int)(actor.AnimationTime / 0.14f) % 2);
+            pose = 1 + ((int)(actor.AnimationTime / 0.24f) % 2);
         }
         else if (actor.IsRaider && raiderIsMoving(actor))
         {
-            pose = 1 + ((int)(actor.AnimationTime / 0.18f) % 2);
+            pose = 1 + ((int)(actor.AnimationTime / 0.24f) % 2);
         }
         else
         {
             pose = 0;
         }
 
-        actor.Renderer.sprite = actor == fixer
+        actor.Renderer.sprite = actor == fixer && !IsSideFacing(actor.Facing) && actor.Facing.y <= 0f
             ? mechanicSprite
             : facingFrames[pose];
         if (actor.IsRaider && actor.HealthBack != null)
@@ -873,7 +889,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private static bool IsSideFacing(Vector2 facing)
     {
-        return Mathf.Abs(facing.x) > Mathf.Abs(facing.y);
+        return Mathf.Abs(facing.x) > Mathf.Abs(facing.y) * 2.2f;
     }
 
     private bool raiderIsMoving(Actor actor)
@@ -924,7 +940,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void ResetPlayer()
     {
-        player.Root.transform.position = new Vector3(-0.2f, -2.72f, player.Root.transform.position.z);
+        player.Root.transform.position = new Vector3(0f, -1.65f, player.Root.transform.position.z);
         player.Facing = Vector2.up;
         player.ActionTime = 0f;
         player.AnimationTime = 0f;
@@ -1039,9 +1055,10 @@ public sealed class RusthollowDemo : MonoBehaviour
         GUILayout.Label($"CREDITS  {credits}       XP  {xp}", body);
         GUILayout.EndArea();
 
-        GUILayout.BeginArea(new Rect(Screen.width - 346f, 16f, 330f, 210f), GUI.skin.box);
+        GUILayout.BeginArea(new Rect(Screen.width - 346f, 16f, 330f, 240f), GUI.skin.box);
         GUILayout.Label("FIELD CONTROLS", heading);
         GUILayout.Label("WASD / Arrows   Move", body);
+        GUILayout.Label("Click Game view for keyboard focus", body);
         GUILayout.Label("Mouse   Aim", body);
         GUILayout.Label("Left click   Fire Rustline Rifle", body);
         GUILayout.Label("Right click / Space   Melee", body);
@@ -1085,7 +1102,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                 fontStyle = FontStyle.Bold,
                 normal = { textColor = Color.white }
             };
-            GUI.Label(new Rect(Screen.width * 0.33f, Screen.height * 0.4f, Screen.width * 0.34f, 100f),
+            GUI.Label(new Rect(Screen.width * 0.33f, Screen.height * 0.82f, Screen.width * 0.34f, 90f),
                 "OPERATOR DOWN\nPress R to get back up", gameOverStyle);
         }
 
