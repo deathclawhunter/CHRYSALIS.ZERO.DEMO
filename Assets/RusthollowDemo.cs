@@ -46,6 +46,10 @@ public sealed class RusthollowDemo : MonoBehaviour
     private readonly List<UnityEngine.Object> generatedAssets = new List<UnityEngine.Object>();
     private readonly List<Sprite> operatorFrames = new List<Sprite>();
     private readonly List<Sprite> raiderFrames = new List<Sprite>();
+    private readonly List<Sprite> operatorBackFrames = new List<Sprite>();
+    private readonly List<Sprite> operatorSideFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderBackFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderSideFrames = new List<Sprite>();
     private readonly Vector2[] startingRaiderPositions =
     {
         new Vector2(-8f, 2.05f),
@@ -117,8 +121,10 @@ public sealed class RusthollowDemo : MonoBehaviour
         Texture2D roomTexture = LoadTexture("room");
         Texture2D propTexture = LoadTexture("props");
         Texture2D peopleTexture = LoadTexture("people");
+        Texture2D peopleAnglesTexture = LoadTexture("people-angles");
         Texture2D mechanicTexture = LoadTexture("mechanic");
-        if (roomTexture == null || propTexture == null || peopleTexture == null || mechanicTexture == null)
+        if (roomTexture == null || propTexture == null || peopleTexture == null ||
+            peopleAnglesTexture == null || mechanicTexture == null)
         {
             return false;
         }
@@ -126,6 +132,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         Sprite roomSprite = MakeSprite(roomTexture, new Rect(0f, 0f, roomTexture.width, roomTexture.height), new Vector2(0.5f, 0.5f));
         CreatePropSprites(propTexture);
         CreateCharacterSprites(peopleTexture);
+        CreateDirectionalCharacterSprites(peopleAnglesTexture);
         mechanicSprite = MakeSprite(
             mechanicTexture,
             new Rect(0f, 0f, mechanicTexture.width, mechanicTexture.height),
@@ -216,6 +223,32 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
     }
 
+    private void CreateDirectionalCharacterSprites(Texture2D texture)
+    {
+        const int frameWidth = 192;
+        const int frameHeight = 256;
+        for (int rowFromTop = 0; rowFromTop < 4; rowFromTop++)
+        {
+            for (int column = 0; column < 8; column++)
+            {
+                Rect rect = new Rect(
+                    column * frameWidth,
+                    texture.height - (rowFromTop + 1) * frameHeight,
+                    frameWidth,
+                    frameHeight);
+                Sprite frame = MakeSprite(texture, rect, new Vector2(0.5f, 0.035f));
+                List<Sprite> destination = rowFromTop switch
+                {
+                    0 => operatorBackFrames,
+                    1 => operatorSideFrames,
+                    2 => raiderBackFrames,
+                    _ => raiderSideFrames
+                };
+                destination.Add(frame);
+            }
+        }
+    }
+
     private static Texture2D CreateEffectTexture()
     {
         const int size = 32;
@@ -296,10 +329,12 @@ public sealed class RusthollowDemo : MonoBehaviour
         player = CreateActor("Rustline Operator", new Vector2(-0.2f, -2.72f), true, false);
         player.Health = 100f;
         player.IsPlayer = true;
+        player.Facing = Vector2.up;
 
         fixer = CreateActor("Mara - salvage mechanic", new Vector2(-5.55f, -1.35f), false, false);
         fixer.Renderer.sprite = mechanicSprite;
         fixer.Renderer.color = Color.white;
+        fixer.Facing = Vector2.down;
 
         SpawnRaiders();
     }
@@ -312,6 +347,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             raider.Health = 56f;
             raider.AttackTimer = Random.Range(1.35f, 2.2f);
             raider.WakeTimer = 2.8f;
+            SetFacing(raider, ActorPosition(player) - position);
             raiders.Add(raider);
         }
     }
@@ -419,11 +455,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         Vector2 pointer = mouse.position.ReadValue();
         Vector3 world = gameCamera.ScreenToWorldPoint(new Vector3(pointer.x, pointer.y, -gameCamera.transform.position.z));
         aimPoint = new Vector2(world.x, world.y);
-        Vector2 facing = aimPoint - ActorPosition(player);
-        if (facing.sqrMagnitude > 0.01f)
-        {
-            SetFacing(player, facing.normalized);
-        }
     }
 
     private void ReadPlayerInput(Keyboard keyboard, Mouse mouse, float deltaTime)
@@ -465,6 +496,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         player.IsRunning = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
         if (movement.sqrMagnitude > 0.001f)
         {
+            SetFacing(player, movement);
             float speed = player.IsRunning ? 4.1f : 2.7f;
             MovePlayer(movement * speed * deltaTime);
             player.AnimationTime += deltaTime * (player.IsRunning ? 12f : 7f);
@@ -512,6 +544,12 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         fireCooldown = 0.28f;
         player.ActionTime = 0.22f;
+        Vector2 aimDirection = aimPoint - ActorPosition(player);
+        if (aimDirection.sqrMagnitude > 0.01f)
+        {
+            SetFacing(player, aimDirection.normalized);
+        }
+
         Vector2 origin = ActorPosition(player) + Vector2.up * 1.36f + player.Facing * 0.35f;
         Vector2 direction = aimPoint - origin;
         if (direction.sqrMagnitude < 0.01f)
@@ -544,8 +582,9 @@ public sealed class RusthollowDemo : MonoBehaviour
         player.ActionTime = 0.38f;
         Vector2 origin = ActorPosition(player);
         bool hit = false;
-        foreach (Actor raider in raiders)
+        for (int i = raiders.Count - 1; i >= 0; i--)
         {
+            Actor raider = raiders[i];
             Vector2 offset = ActorPosition(raider) - origin;
             if (offset.magnitude > 1.35f || Vector2.Dot(player.Facing, offset.normalized) < -0.1f)
             {
@@ -756,7 +795,10 @@ public sealed class RusthollowDemo : MonoBehaviour
         actor.ActionTime = Mathf.Max(0f, actor.ActionTime - deltaTime);
         Vector2 position = ActorPosition(actor);
         actor.Renderer.sortingOrder = SortOrder(position.y);
-        actor.Renderer.flipX = actor.Facing.x < -0.05f;
+        List<Sprite> facingFrames = GetFramesForFacing(actor);
+        actor.Renderer.flipX = actor == fixer
+            ? false
+            : (IsSideFacing(actor.Facing) ? actor.Facing.x > 0f : actor.Facing.x < 0f);
         if (actor.IsPlayer)
         {
             actor.Renderer.color = boostRemaining > 0f
@@ -796,7 +838,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
         actor.Renderer.sprite = actor == fixer
             ? mechanicSprite
-            : (actor.IsRaider ? raiderFrames[pose] : operatorFrames[pose]);
+            : facingFrames[pose];
         if (actor.IsRaider && actor.HealthBack != null)
         {
             actor.HealthBack.sortingOrder = actor.Renderer.sortingOrder + 20;
@@ -811,6 +853,27 @@ public sealed class RusthollowDemo : MonoBehaviour
                (keyboard.aKey.isPressed || keyboard.dKey.isPressed || keyboard.wKey.isPressed || keyboard.sKey.isPressed ||
                 keyboard.leftArrowKey.isPressed || keyboard.rightArrowKey.isPressed ||
                 keyboard.upArrowKey.isPressed || keyboard.downArrowKey.isPressed);
+    }
+
+    private List<Sprite> GetFramesForFacing(Actor actor)
+    {
+        bool isRaider = actor.IsRaider;
+        if (IsSideFacing(actor.Facing))
+        {
+            return isRaider ? raiderSideFrames : operatorSideFrames;
+        }
+
+        if (actor.Facing.y > 0f)
+        {
+            return isRaider ? raiderBackFrames : operatorBackFrames;
+        }
+
+        return isRaider ? raiderFrames : operatorFrames;
+    }
+
+    private static bool IsSideFacing(Vector2 facing)
+    {
+        return Mathf.Abs(facing.x) > Mathf.Abs(facing.y);
     }
 
     private bool raiderIsMoving(Actor actor)
@@ -862,7 +925,7 @@ public sealed class RusthollowDemo : MonoBehaviour
     private void ResetPlayer()
     {
         player.Root.transform.position = new Vector3(-0.2f, -2.72f, player.Root.transform.position.z);
-        player.Facing = Vector2.right;
+        player.Facing = Vector2.up;
         player.ActionTime = 0f;
         player.AnimationTime = 0f;
         player.IsRunning = false;

@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1024" viewBox="0 0 1536 1024">
+  <defs>
+    <linearGradient id="skin" x2="1" y2="1">
+      <stop stop-color="#f0c49d"/><stop offset=".5" stop-color="#bd805f"/><stop offset="1" stop-color="#694436"/>
+    </linearGradient>
+    <linearGradient id="jacket" x2="1" y2="1">
+      <stop stop-color="#68766f"/><stop offset=".52" stop-color="#4b5751"/><stop offset="1" stop-color="#2a3432"/>
+    </linearGradient>
+    <linearGradient id="pants" x2="1" y2="1">
+      <stop stop-color="#687168"/><stop offset=".5" stop-color="#3c4843"/><stop offset="1" stop-color="#202927"/>
+    </linearGradient>
+    <linearGradient id="metal" x2="0" y2="1">
+      <stop stop-color="#858479"/><stop offset=".5" stop-color="#424846"/><stop offset="1" stop-color="#191f1e"/>
+    </linearGradient>
+    <filter id="shadowBlur" x="-.4" y="-.4" width="1.8" height="1.8">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+
+    <g id="shadow">
+      <ellipse cx="96" cy="231" rx="45" ry="12" fill="#101212" opacity=".7" filter="url(#shadowBlur)"/>
+      <ellipse cx="96" cy="228" rx="38" ry="8" fill="#111615" opacity=".76"/>
+    </g>
+    <g id="rearLegL">
+      <path d="M75 151h24l-3 44-8 22-24 2 4-24z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M72 171l21 3m-22 8 19 3m-18 17 18 2" fill="none" stroke="#828c80" stroke-width="3" opacity=".64"/>
+      <path d="M67 213l26-1 3 12-5 9-33 3 2-11z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M61 230l29-3m-27-4 23-2" stroke="#b28b56" stroke-width="2"/>
+    </g>
+    <g id="rearLegR">
+      <path d="M99 152h23l5 42 9 23-24 5-10-25z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M104 170l18-3m-16 10 18-3m-14 20 18-3" fill="none" stroke="#828c80" stroke-width="3" opacity=".64"/>
+      <path d="M112 216l25-3 6 10v10l-31 6-7-10z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M111 232l29-5m-28-2 23-4" stroke="#b28b56" stroke-width="2"/>
+    </g>
+    <g id="rearBody">
+      <path d="M75 55q-14 6-20 22l-9 28 11 17 13-9-5 39q19 15 62 0l-5-39 13 9 11-17-12-29q-7-17-22-21z"
+            fill="url(#jacket)" stroke="#242b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M73 67l20 7-5 53-19-9 8-27m45-24-19 7 6 53 18-9-8-27" fill="#2a3432" opacity=".7"/>
+      <path d="M84 67l12 9 14-9 12 16-6 55H77l-5-53z" fill="#4b5751" stroke="#313632" stroke-width="4"/>
+      <path d="M87 71l9 15 13-15-6 59H84z" fill="#2a3432" stroke="#252b29" stroke-width="3"/>
+      <path d="M83 90l12 6m14-6-12 6M81 105l14 7m16-7-13 7" fill="none" stroke="#b5c0ae" stroke-width="3" opacity=".86"/>
+      <path d="M79 127q17 8 38 0l6 22q-24 9-51 0z" fill="#302b24" stroke="#1c211f" stroke-width="4"/>
+      <path d="M78 136h44m-35-5v12m24-12v12" fill="none" stroke="#c5a36d" stroke-width="4"/>
+      <rect x="94" y="132" width="9" height="10" rx="2" fill="#c59f64" stroke="#392f23" stroke-width="2"/>
+      <path d="M76 77l-13 34 8 7 15-24m42-17 13 34-8 7-15-24" fill="url(#jacket)" stroke="#252b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M65 111l7 6-5 9-8-6m79-9-7 6 5 9 8-6" fill="url(#skin)" stroke="#50392f" stroke-width="3"/>
+      <path d="M67 145l-3 25 10 6 8-23m39-8 8 25-10 7-9-24" fill="#2a3432" stroke="#252b29" stroke-width="4"/>
+      <path d="M91 166l4 15 10 4 9-5-6-16z" fill="url(#skin)" stroke="#4a332a" stroke-width="3"/>
+      <path d="M91 22q3-18 20-18 20 0 23 19l-4 24q-7 16-24 17-17-4-20-20z"
+            fill="url(#skin)" stroke="#573d33" stroke-width="4"/>
+      <path d="M83 31q-4-30 25-31 28 1 31 27l-5 26-9 10-10-9H90l-8-10z"
+            fill="#302b27" stroke="#201f1d" stroke-width="4"/>
+      <path d="M87 20q8-15 25-15 13 0 21 11m-49 14 2 17m43-31 3 26" fill="none" stroke="#7e6251" stroke-width="4" opacity=".8"/>
+      <path d="M83 33l-8 4 2 14 9 5m46-23 8 5-3 13-9 4" fill="url(#skin)" stroke="#573d33" stroke-width="3"/>
+      <path d="M79 75l-8 10m57-10 9 10" stroke="#b5c0ae" stroke-width="3" opacity=".72"/>
+    </g>
+    <g id="rearRifle">
+      <path d="M121 105l31-19 5 7-32 21z" fill="url(#metal)" stroke="#171c1b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M146 91l18-12 4 5-18 14m-25 11-11 7-5-5 11-10" fill="#252725" stroke="#171c1b" stroke-width="2"/>
+      <path d="M150 88l17-12m-10 9 10-7" stroke="#c49a5e" stroke-width="2"/>
+    </g>
+    <g id="rearKnife">
+      <path d="M130 112l22-31 5 4-15 35z" fill="#ccd0c4" stroke="#373d3b" stroke-width="3"/>
+      <path d="M132 120l8-5 6 8-10 6z" fill="#83503a" stroke="#30251f" stroke-width="2"/>
+    </g>
+    <g id="rearIdle">
+      <use href="#shadow"/><use href="#rearLegL"/><use href="#rearLegR"/>
+      <use href="#rearBody"/><use href="#rearRifle"/>
+    </g>
+    <g id="rearWalk1">
+      <use href="#shadow"/>
+      <use href="#rearLegL" transform="rotate(-17 84 158)"/>
+      <use href="#rearLegR" transform="rotate(18 112 158)"/>
+      <use href="#rearBody" transform="translate(0 -2)"/>
+      <use href="#rearRifle"/>
+    </g>
+    <g id="rearWalk2">
+      <use href="#shadow"/>
+      <use href="#rearLegL" transform="rotate(18 84 158)"/>
+      <use href="#rearLegR" transform="rotate(-17 112 158)"/>
+      <use href="#rearBody" transform="translate(0 -1)"/>
+      <use href="#rearRifle"/>
+    </g>
+    <g id="rearRun1">
+      <use href="#shadow"/>
+      <use href="#rearLegL" transform="rotate(-32 84 158) translate(-3 -2)"/>
+      <use href="#rearLegR" transform="rotate(30 112 158) translate(2 -2)"/>
+      <use href="#rearBody" transform="translate(0 -5) rotate(-5 96 114)"/>
+      <use href="#rearRifle" transform="translate(0 -4)"/>
+    </g>
+    <g id="rearRun2">
+      <use href="#shadow"/>
+      <use href="#rearLegL" transform="rotate(30 84 158) translate(2 -2)"/>
+      <use href="#rearLegR" transform="rotate(-32 112 158) translate(-3 -2)"/>
+      <use href="#rearBody" transform="translate(0 -3) rotate(-5 96 114)"/>
+      <use href="#rearRifle" transform="translate(0 -4)"/>
+    </g>
+    <g id="rearShoot1">
+      <use href="#shadow"/><use href="#rearLegL"/><use href="#rearLegR"/>
+      <use href="#rearBody" transform="translate(1 0)"/>
+      <use href="#rearRifle" transform="translate(-14 -12) rotate(-10 133 102)"/>
+      <path d="M149 80l11-12 7 5-11 13z" fill="#ffe5a0" stroke="#ff9b4e" stroke-width="3"/>
+    </g>
+    <g id="rearShoot2">
+      <use href="#shadow"/><use href="#rearLegL"/><use href="#rearLegR"/>
+      <use href="#rearBody" transform="translate(1 0)"/>
+      <use href="#rearRifle" transform="translate(-14 -12) rotate(-6 133 102)"/>
+      <path d="M153 78l11-14 8 4-8 15z" fill="#fff3c3" stroke="#ff8c43" stroke-width="3"/>
+    </g>
+    <g id="rearAttack">
+      <use href="#shadow"/>
+      <use href="#rearLegL" transform="rotate(-15 84 158)"/>
+      <use href="#rearLegR" transform="rotate(11 112 158)"/>
+      <use href="#rearBody" transform="rotate(-5 96 114)"/>
+      <use href="#rearKnife"/>
+    </g>
+
+    <g id="sideHead">
+      <path d="M82 21q4-17 20-17 18 0 22 17l-2 24q-5 17-19 19-17-3-21-19z"
+            fill="url(#skin)" stroke="#573d33" stroke-width="4"/>
+      <path d="M81 27q-1-24 22-25 18 0 23 18l-8-2-7 7-10-7-14 8-1 16-5 3z"
+            fill="#302b27" stroke="#201f1d" stroke-width="4"/>
+      <path d="M88 25l-8 7 2 16 8 5m28-35 9 5-3 13-7 4" fill="url(#skin)" stroke="#573d33" stroke-width="3"/>
+      <path d="M79 38l-8 4 10 4" fill="url(#skin)" stroke="#573d33" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M85 31q4-3 7 0m-6 1 4 1" stroke="#292522" stroke-width="2.5"/>
+      <circle cx="89" cy="31" r="1.5" fill="#252522"/>
+      <path d="M84 50q6 3 12-1" fill="none" stroke="#784637" stroke-width="2"/>
+    </g>
+    <g id="sideLegL">
+      <path d="M79 151q17 0 22 5l-7 42-16 22-21-3 13-27z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M66 207l20 7-4 13-9 8-25-7 5-10z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M55 227l24 4" stroke="#b28b56" stroke-width="2"/>
+    </g>
+    <g id="sideLegR">
+      <path d="M91 153q17-4 27 2l6 38 8 25-23 4-13-25z" fill="url(#pants)" stroke="#202725" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M108 216l23-1 8 10-1 10-31 3-5-11z" fill="#292923" stroke="#131716" stroke-width="4"/>
+      <path d="M107 231l28-3" stroke="#b28b56" stroke-width="2"/>
+    </g>
+    <g id="sideBody">
+      <path d="M87 56q-12 3-17 18l-8 24 11 10 11-10-4 42q19 16 41 1l-5-44 12 10 13-10-13-26q-8-14-19-15z"
+            fill="url(#jacket)" stroke="#242b29" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M88 65l15 7-5 56-18-5 9-28m32-26-16 6 8 54 18-8-8-27" fill="#2a3432" opacity=".72"/>
+      <path d="M91 70l16 10 11-12 8 18-6 45H85l-5-44z" fill="#4b5751" stroke="#313632" stroke-width="4"/>
+      <path d="M91 84l28 3m-30 9 28 3m-28 9 25 3" fill="none" stroke="#b5c0ae" stroke-width="3" opacity=".8"/>
+      <path d="M86 128h40l7 19q-22 9-50 1z" fill="#302b24" stroke="#1c211f" stroke-width="4"/>
+      <path d="M85 137h45m-26-6v13m14-13v13" fill="none" stroke="#c5a36d" stroke-width="4"/>
+      <path d="M71 75l-12 33 8 10 17-26m40-14 15 31-9 8-19-25" fill="url(#jacket)" stroke="#252b29" stroke-width="5"/>
+      <path d="M60 106l9 6-5 10-9-5m79-11-8 7 7 10 9-6" fill="url(#skin)" stroke="#50392f" stroke-width="3"/>
+      <path d="M134 71l15 15-1 40-12 15-6-20 6-19-12-17z" fill="#2a3432" stroke="#252b29" stroke-width="4"/>
+      <path d="M137 98h16v26h-17" fill="none" stroke="#b5c0ae" stroke-width="3"/>
+      <path d="M94 165l4 16 9 4 9-5-5-16z" fill="url(#skin)" stroke="#4a332a" stroke-width="3"/>
+    </g>
+    <g id="sideRifle">
+      <path d="M51 102h70l3 7H53z" fill="url(#metal)" stroke="#171c1b" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M52 101l-12-4-7 3v6l10 3 7-2m26 1-3 14 10 1 5-15m28-7 18-5 3 4-18 9" fill="#252725" stroke="#171c1b" stroke-width="2"/>
+      <path d="M39 98h-9m4 7h-8" stroke="#c49a5e" stroke-width="2"/>
+    </g>
+    <g id="sideKnife">
+      <path d="M59 109L35 80l-5 4 19 34z" fill="#ccd0c4" stroke="#373d3b" stroke-width="3"/>
+      <path d="M55 119l-9-5-7 8 10 7z" fill="#83503a" stroke="#30251f" stroke-width="2"/>
+    </g>
+    <g id="sideIdle">
+      <use href="#shadow"/><use href="#sideLegL"/><use href="#sideLegR"/>
+      <use href="#sideBody"/><use href="#sideHead"/><use href="#sideRifle"/>
+    </g>
+    <g id="sideWalk1">
+      <use href="#shadow"/>
+      <use href="#sideLegL" transform="rotate(-17 84 158)"/>
+      <use href="#sideLegR" transform="rotate(18 112 158)"/>
+      <use href="#sideBody" transform="translate(0 -2)"/>
+      <use href="#sideHead"/><use href="#sideRifle"/>
+    </g>
+    <g id="sideWalk2">
+      <use href="#shadow"/>
+      <use href="#sideLegL" transform="rotate(18 84 158)"/>
+      <use href="#sideLegR" transform="rotate(-17 112 158)"/>
+      <use href="#sideBody" transform="translate(0 -1)"/>
+      <use href="#sideHead"/><use href="#sideRifle"/>
+    </g>
+    <g id="sideRun1">
+      <use href="#shadow"/>
+      <use href="#sideLegL" transform="rotate(-30 84 158) translate(-3 -2)"/>
+      <use href="#sideLegR" transform="rotate(32 112 158) translate(2 -2)"/>
+      <use href="#sideBody" transform="translate(0 -5) rotate(-5 96 114)"/>
+      <use href="#sideHead" transform="translate(-1 -4)"/>
+      <use href="#sideRifle" transform="translate(-2 -4)"/>
+    </g>
+    <g id="sideRun2">
+      <use href="#shadow"/>
+      <use href="#sideLegL" transform="rotate(30 84 158) translate(2 -2)"/>
+      <use href="#sideLegR" transform="rotate(-32 112 158) translate(-3 -2)"/>
+      <use href="#sideBody" transform="translate(0 -3) rotate(-5 96 114)"/>
+      <use href="#sideHead" transform="translate(-1 -2)"/>
+      <use href="#sideRifle" transform="translate(-2 -4)"/>
+    </g>
+    <g id="sideShoot1">
+      <use href="#shadow"/><use href="#sideLegL"/><use href="#sideLegR"/>
+      <use href="#sideBody" transform="translate(-1 0)"/>
+      <use href="#sideHead" transform="translate(-1 0)"/>
+      <use href="#sideRifle" transform="translate(-8 -8) rotate(-3 75 105)"/>
+      <path d="M35 92l-12-9 4-7 12 10z" fill="#ffe5a0" stroke="#ff9b4e" stroke-width="3"/>
+    </g>
+    <g id="sideShoot2">
+      <use href="#shadow"/><use href="#sideLegL"/><use href="#sideLegR"/>
+      <use href="#sideBody" transform="translate(-1 0)"/>
+      <use href="#sideHead" transform="translate(-1 0)"/>
+      <use href="#sideRifle" transform="translate(-8 -8) rotate(2 75 105)"/>
+      <path d="M34 88l-14-8 5-7 13 10z" fill="#fff3c3" stroke="#ff8c43" stroke-width="3"/>
+    </g>
+    <g id="sideAttack">
+      <use href="#shadow"/>
+      <use href="#sideLegL" transform="rotate(-14 84 158)"/>
+      <use href="#sideLegR" transform="rotate(12 112 158)"/>
+      <use href="#sideBody" transform="rotate(-4 96 114)"/>
+      <use href="#sideHead"/><use href="#sideKnife"/>
+    </g>
+  </defs>
+
+  <g>
+    <g transform="translate(0 0)"><use href="#rearIdle"/></g>
+    <g transform="translate(192 0)"><use href="#rearWalk1"/></g>
+    <g transform="translate(384 0)"><use href="#rearWalk2"/></g>
+    <g transform="translate(576 0)"><use href="#rearRun1"/></g>
+    <g transform="translate(768 0)"><use href="#rearRun2"/></g>
+    <g transform="translate(960 0)"><use href="#rearShoot1"/></g>
+    <g transform="translate(1152 0)"><use href="#rearShoot2"/></g>
+    <g transform="translate(1344 0)"><use href="#rearAttack"/></g>
+    <g transform="translate(0 256)"><use href="#sideIdle"/></g>
+    <g transform="translate(192 256)"><use href="#sideWalk1"/></g>
+    <g transform="translate(384 256)"><use href="#sideWalk2"/></g>
+    <g transform="translate(576 256)"><use href="#sideRun1"/></g>
+    <g transform="translate(768 256)"><use href="#sideRun2"/></g>
+    <g transform="translate(960 256)"><use href="#sideShoot1"/></g>
+    <g transform="translate(1152 256)"><use href="#sideShoot2"/></g>
+    <g transform="translate(1344 256)"><use href="#sideAttack"/></g>
+  </g>
+  <g>
+    <g transform="translate(0 512)"><use href="#rearIdle"/></g>
+    <g transform="translate(192 512)"><use href="#rearWalk1"/></g>
+    <g transform="translate(384 512)"><use href="#rearWalk2"/></g>
+    <g transform="translate(576 512)"><use href="#rearRun1"/></g>
+    <g transform="translate(768 512)"><use href="#rearRun2"/></g>
+    <g transform="translate(960 512)"><use href="#rearShoot1"/></g>
+    <g transform="translate(1152 512)"><use href="#rearShoot2"/></g>
+    <g transform="translate(1344 512)"><use href="#rearAttack"/></g>
+    <g transform="translate(0 768)"><use href="#sideIdle"/></g>
+    <g transform="translate(192 768)"><use href="#sideWalk1"/></g>
+    <g transform="translate(384 768)"><use href="#sideWalk2"/></g>
+    <g transform="translate(576 768)"><use href="#sideRun1"/></g>
+    <g transform="translate(768 768)"><use href="#sideRun2"/></g>
+    <g transform="translate(960 768)"><use href="#sideShoot1"/></g>
+    <g transform="translate(1152 768)"><use href="#sideShoot2"/></g>
+    <g transform="translate(1344 768)"><use href="#sideAttack"/></g>
+  </g>
+</svg>
