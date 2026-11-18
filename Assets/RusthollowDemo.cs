@@ -96,11 +96,11 @@ public sealed class RusthollowDemo : MonoBehaviour
     private WeaponType currentWeapon = WeaponType.Rifle;
     private bool fixerMessageVisible;
     private float fixerMessageTime;
-    private string fixerMessage = "Mara: Keep the Rusted Halo standing.";
+    private string fixerMessage = "Mara: Raiders are closing in on the trail.";
     private bool gameOver;
 
-    private const float RoomHalfWidth = 8.2f;
-    private const float RoomHalfDepth = 3.4f;
+    private const float TerrainHalfWidth = 9.2f;
+    private const float TerrainHalfDepth = 5.1f;
     private const int ContractGoal = 5;
     private const int WalkPoseStart = 1;
     private const int RunPoseStart = 5;
@@ -131,7 +131,6 @@ public sealed class RusthollowDemo : MonoBehaviour
 
         ConfigureCamera();
         CreateRoom();
-        CreateFurniture();
         CreateActors();
         aimPoint = player.Root.transform.position;
     }
@@ -166,7 +165,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         generatedAssets.Add(solidTexture);
         solidSprite = MakeSprite(solidTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
 
-        GameObject room = new GameObject("The Rusted Halo - illustrated room");
+        GameObject room = new GameObject("Rusthollow outdoor terrain");
         room.transform.position = new Vector3(0f, 0f, 2f);
         SpriteRenderer roomRenderer = room.AddComponent<SpriteRenderer>();
         roomRenderer.sprite = roomSprite;
@@ -551,7 +550,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void TryMove(Actor actor, Vector2 position)
     {
-        if (!IsInsideRoom(position))
+        if (!IsInsideTerrain(position))
         {
             return;
         }
@@ -568,9 +567,9 @@ public sealed class RusthollowDemo : MonoBehaviour
         actor.Root.transform.position = new Vector3(position.x, position.y, actor.Root.transform.position.z);
     }
 
-    private static bool IsInsideRoom(Vector2 position)
+    private static bool IsInsideTerrain(Vector2 position)
     {
-        return Mathf.Abs(position.x) / RoomHalfWidth + Mathf.Abs(position.y) / RoomHalfDepth <= 1f;
+        return Mathf.Abs(position.x) / TerrainHalfWidth + Mathf.Abs(position.y) / TerrainHalfDepth <= 1f;
     }
 
     private void FireCurrentWeapon()
@@ -708,7 +707,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private bool TryMoveRaider(Actor raider, Vector2 position)
     {
-        if (!IsInsideRoom(position))
+        if (!IsInsideTerrain(position))
         {
             return false;
         }
@@ -769,7 +768,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                 Destroy(projectile.Root);
                 projectiles.RemoveAt(i);
             }
-            else if (projectile.Remaining <= 0f || !IsInsideRoom(projectile.Position))
+            else if (projectile.Remaining <= 0f || !IsInsideTerrain(projectile.Position))
             {
                 Destroy(projectile.Root);
                 projectiles.RemoveAt(i);
@@ -1132,7 +1131,6 @@ public sealed class RusthollowDemo : MonoBehaviour
 
         GUILayout.BeginArea(new Rect(16f, 16f, 360f, 210f), GUI.skin.box);
         GUILayout.Label("CHRYSALIS: ZERO", title);
-        GUILayout.Label("THE RUSTED HALO  //  RUSTHOLLOW", heading);
         DrawMeter("HEALTH", health, 100f, new Color(0.35f, 0.82f, 0.58f));
         GUILayout.Space(4f);
         GUILayout.Label(kills >= ContractGoal
