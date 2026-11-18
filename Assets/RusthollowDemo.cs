@@ -4,6 +4,12 @@ using UnityEngine.InputSystem;
 
 public sealed class RusthollowDemo : MonoBehaviour
 {
+    private enum WeaponType
+    {
+        Rifle,
+        Pistol
+    }
+
     private sealed class Actor
     {
         public GameObject Root;
@@ -16,9 +22,11 @@ public sealed class RusthollowDemo : MonoBehaviour
         public float WakeTimer;
         public float AnimationTime;
         public float ActionTime;
+        public float ActionDuration;
         public bool IsRaider;
         public bool IsPlayer;
         public bool IsRunning;
+        public bool IsMeleeAttacking;
     }
 
     private sealed class Projectile
@@ -54,6 +62,10 @@ public sealed class RusthollowDemo : MonoBehaviour
     private readonly List<Sprite> raiderSideFrames = new List<Sprite>();
     private readonly List<Sprite> raiderBackDiagonalFrames = new List<Sprite>();
     private readonly List<Sprite> raiderFrontDiagonalFrames = new List<Sprite>();
+    private readonly List<Sprite> rifleFrames = new List<Sprite>();
+    private readonly List<Sprite> pistolFrames = new List<Sprite>();
+    private readonly List<Sprite> playerMeleeFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderMeleeFrames = new List<Sprite>();
     private readonly Vector2[] startingRaiderPositions =
     {
         new Vector2(-5.2f, -0.25f),
@@ -81,6 +93,7 @@ public sealed class RusthollowDemo : MonoBehaviour
     private int kills;
     private int credits = 120;
     private int xp;
+    private WeaponType currentWeapon = WeaponType.Rifle;
     private bool fixerMessageVisible;
     private float fixerMessageTime;
     private string fixerMessage = "Mara: Keep the Rusted Halo standing.";
@@ -127,11 +140,9 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         Texture2D roomTexture = LoadTexture("room-isometric");
         Texture2D propTexture = LoadTexture("props");
-        Texture2D peopleTexture = LoadTexture("people");
-        Texture2D peopleAnglesTexture = LoadTexture("people-angles");
+        Texture2D peopleTexture = LoadTexture("people-gemini");
         Texture2D mechanicTexture = LoadTexture("mechanic");
-        if (roomTexture == null || propTexture == null || peopleTexture == null ||
-            peopleAnglesTexture == null || mechanicTexture == null)
+        if (roomTexture == null || propTexture == null || peopleTexture == null || mechanicTexture == null)
         {
             return false;
         }
@@ -139,7 +150,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         Sprite roomSprite = MakeSprite(roomTexture, new Rect(0f, 0f, roomTexture.width, roomTexture.height), new Vector2(0.5f, 0.5f));
         CreatePropSprites(propTexture);
         CreateCharacterSprites(peopleTexture);
-        CreateDirectionalCharacterSprites(peopleAnglesTexture);
         mechanicSprite = MakeSprite(
             mechanicTexture,
             new Rect(0f, 0f, mechanicTexture.width, mechanicTexture.height),
@@ -173,7 +183,7 @@ public sealed class RusthollowDemo : MonoBehaviour
             return null;
         }
 
-        texture.filterMode = assetName == "people" || assetName == "people-angles"
+        texture.filterMode = assetName == "people-gemini"
             ? FilterMode.Point
             : FilterMode.Bilinear;
         texture.wrapMode = TextureWrapMode.Clamp;
@@ -210,56 +220,46 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         const int frameWidth = 192;
         const int frameHeight = 256;
-        for (int rowFromTop = 0; rowFromTop < 2; rowFromTop++)
+        var rows = new List<Sprite>[16];
+        for (int rowFromTop = 0; rowFromTop < rows.Length; rowFromTop++)
         {
-            for (int column = 0; column < 12; column++)
+            rows[rowFromTop] = new List<Sprite>(4);
+            for (int column = 0; column < 4; column++)
             {
                 Rect rect = new Rect(
                     column * frameWidth,
                     texture.height - (rowFromTop + 1) * frameHeight,
                     frameWidth,
                     frameHeight);
-                Sprite frame = MakeSprite(texture, rect, new Vector2(0.5f, 0.035f));
-                if (rowFromTop == 0)
-                {
-                    operatorFrames.Add(frame);
-                }
-                else
-                {
-                    raiderFrames.Add(frame);
-                }
+                rows[rowFromTop].Add(MakeSprite(texture, rect, new Vector2(0.5f, 0.035f)));
             }
         }
+
+        FillWalkingPoses(operatorFrames, rows[0]);
+        FillWalkingPoses(operatorFrontDiagonalFrames, rows[1]);
+        FillWalkingPoses(operatorBackDiagonalFrames, rows[2]);
+        FillWalkingPoses(operatorSideFrames, rows[3]);
+        FillWalkingPoses(operatorBackFrames, rows[4]);
+        FillWalkingPoses(raiderFrames, rows[5]);
+        FillWalkingPoses(raiderFrontDiagonalFrames, rows[6]);
+        FillWalkingPoses(raiderBackDiagonalFrames, rows[7]);
+        FillWalkingPoses(raiderSideFrames, rows[8]);
+        FillWalkingPoses(raiderBackFrames, rows[9]);
+        rifleFrames.AddRange(rows[10]);
+        pistolFrames.AddRange(rows[12]);
+        playerMeleeFrames.AddRange(rows[14]);
+        raiderMeleeFrames.AddRange(rows[15]);
     }
 
-    private void CreateDirectionalCharacterSprites(Texture2D texture)
+    private static void FillWalkingPoses(List<Sprite> destination, List<Sprite> walkFrames)
     {
-        const int frameWidth = 192;
-        const int frameHeight = 256;
-        for (int rowFromTop = 0; rowFromTop < 8; rowFromTop++)
-        {
-            for (int column = 0; column < 12; column++)
-            {
-                Rect rect = new Rect(
-                    column * frameWidth,
-                    texture.height - (rowFromTop + 1) * frameHeight,
-                    frameWidth,
-                    frameHeight);
-                Sprite frame = MakeSprite(texture, rect, new Vector2(0.5f, 0.035f));
-                List<Sprite> destination = rowFromTop switch
-                {
-                    0 => operatorBackFrames,
-                    1 => operatorSideFrames,
-                    2 => operatorBackDiagonalFrames,
-                    3 => operatorFrontDiagonalFrames,
-                    4 => raiderBackFrames,
-                    5 => raiderSideFrames,
-                    6 => raiderBackDiagonalFrames,
-                    _ => raiderFrontDiagonalFrames
-                };
-                destination.Add(frame);
-            }
-        }
+        destination.Clear();
+        destination.Add(walkFrames[0]);
+        destination.AddRange(walkFrames);
+        destination.AddRange(walkFrames);
+        destination.Add(walkFrames[0]);
+        destination.Add(walkFrames[0]);
+        destination.Add(walkFrames[0]);
     }
 
     private static Texture2D CreateEffectTexture()
@@ -479,6 +479,15 @@ public sealed class RusthollowDemo : MonoBehaviour
             return;
         }
 
+        if (keyboard.digit1Key.wasPressedThisFrame)
+        {
+            currentWeapon = WeaponType.Rifle;
+        }
+        else if (keyboard.digit2Key.wasPressedThisFrame)
+        {
+            currentWeapon = WeaponType.Pistol;
+        }
+
         if (keyboard.qKey.wasPressedThisFrame && focusCooldown <= 0f)
         {
             focusRemaining = 2.3f;
@@ -523,7 +532,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
         if (mouse != null && mouse.leftButton.isPressed && fireCooldown <= 0f)
         {
-            FireRifle();
+            FireCurrentWeapon();
         }
 
         if ((keyboard.spaceKey.wasPressedThisFrame || (mouse != null && mouse.rightButton.wasPressedThisFrame)))
@@ -564,10 +573,13 @@ public sealed class RusthollowDemo : MonoBehaviour
         return Mathf.Abs(position.x) / RoomHalfWidth + Mathf.Abs(position.y) / RoomHalfDepth <= 1f;
     }
 
-    private void FireRifle()
+    private void FireCurrentWeapon()
     {
-        fireCooldown = 0.28f;
-        player.ActionTime = 0.22f;
+        bool isRifle = currentWeapon == WeaponType.Rifle;
+        fireCooldown = isRifle ? 0.28f : 0.18f;
+        player.ActionTime = isRifle ? 0.22f : 0.18f;
+        player.ActionDuration = player.ActionTime;
+        player.IsMeleeAttacking = false;
         Vector2 aimDirection = aimPoint - ActorPosition(player);
         if (aimDirection.sqrMagnitude > 0.01f)
         {
@@ -582,13 +594,13 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
 
         direction.Normalize();
-        GameObject bulletObject = new GameObject("Rustline Rifle projectile");
+        GameObject bulletObject = new GameObject(isRifle ? "Rustline Rifle projectile" : "Sidearm Pistol projectile");
         bulletObject.transform.position = new Vector3(origin.x, origin.y, -0.5f);
         bulletObject.transform.right = new Vector3(direction.x, direction.y, 0f);
         bulletObject.transform.localScale = new Vector3(0.32f, 0.105f, 1f);
         SpriteRenderer renderer = bulletObject.AddComponent<SpriteRenderer>();
         renderer.sprite = bulletSprite;
-        renderer.color = new Color(1f, 0.83f, 0.43f);
+        renderer.color = isRifle ? new Color(1f, 0.83f, 0.43f) : new Color(0.82f, 0.9f, 1f);
         renderer.sortingOrder = 8000;
 
         projectiles.Add(new Projectile
@@ -597,13 +609,15 @@ public sealed class RusthollowDemo : MonoBehaviour
             Position = origin,
             Direction = direction,
             Remaining = 1.2f,
-            Damage = boostRemaining > 0f ? 38f : 28f
+            Damage = boostRemaining > 0f ? 38f : isRifle ? 28f : 18f
         });
     }
 
     private void MeleeAttack()
     {
         player.ActionTime = 0.38f;
+        player.ActionDuration = player.ActionTime;
+        player.IsMeleeAttacking = true;
         Vector2 origin = ActorPosition(player);
         bool hit = false;
         for (int i = raiders.Count - 1; i >= 0; i--)
@@ -683,6 +697,8 @@ public sealed class RusthollowDemo : MonoBehaviour
                 {
                     raider.AttackTimer = 1.65f;
                     raider.ActionTime = 0.52f;
+                    raider.ActionDuration = raider.ActionTime;
+                    raider.IsMeleeAttacking = true;
                     health = Mathf.Max(0f, health - 5.5f);
                     CreateEffect(playerPosition + Vector2.up * 0.45f, new Color(1f, 0.26f, 0.16f), 0.36f, 0.24f);
                 }
@@ -784,6 +800,8 @@ public sealed class RusthollowDemo : MonoBehaviour
         raider.Health -= damage;
         raider.Renderer.color = Color.white;
         raider.ActionTime = 0.12f;
+        raider.ActionDuration = raider.ActionTime;
+        raider.IsMeleeAttacking = false;
         CreateEffect(impactPosition, new Color(1f, 0.62f, 0.3f), 0.34f, 0.2f);
         if (raider.Health <= 0f)
         {
@@ -844,9 +862,16 @@ public sealed class RusthollowDemo : MonoBehaviour
         int pose;
         if (actor.ActionTime > 0f)
         {
-            pose = actor.IsPlayer && fireCooldown > 0.08f
-                ? ShootPoseStart + ((int)(Time.time * 12f) % 2)
-                : (actor.IsRaider || actor.IsPlayer ? AttackPose : 0);
+            if (actor.IsPlayer)
+            {
+                pose = actor.IsMeleeAttacking
+                    ? AttackPose
+                    : ShootPoseStart + ((int)(Time.time * 12f) % 2);
+            }
+            else
+            {
+                pose = actor.IsRaider && actor.IsMeleeAttacking ? AttackPose : 0;
+            }
         }
         else if (actor.IsPlayer && Mouse.current != null && Mouse.current.leftButton.isPressed && fireCooldown > 0f)
         {
@@ -869,9 +894,27 @@ public sealed class RusthollowDemo : MonoBehaviour
             pose = 0;
         }
 
-        actor.Renderer.sprite = actor == fixer && !IsSideFacing(actor.Facing) && actor.Facing.y <= 0f
-            ? mechanicSprite
-            : facingFrames[pose];
+        if (actor == fixer && !IsSideFacing(actor.Facing) && actor.Facing.y <= 0f)
+        {
+            actor.Renderer.sprite = mechanicSprite;
+        }
+        else if (actor.IsPlayer && pose >= ShootPoseStart && pose < AttackPose)
+        {
+            List<Sprite> weaponFrames = currentWeapon == WeaponType.Rifle ? rifleFrames : pistolFrames;
+            actor.Renderer.sprite = weaponFrames[(pose - ShootPoseStart) % weaponFrames.Count];
+        }
+        else if ((actor.IsPlayer || actor.IsRaider) && pose == AttackPose && actor.ActionTime > 0f)
+        {
+            List<Sprite> actionFrames = actor.IsRaider ? raiderMeleeFrames : playerMeleeFrames;
+            float duration = actor.ActionDuration > 0f ? actor.ActionDuration : actor.ActionTime;
+            float progress = Mathf.Clamp01(1f - actor.ActionTime / duration);
+            int frameIndex = Mathf.Min(Mathf.FloorToInt(progress * actionFrames.Count), actionFrames.Count - 1);
+            actor.Renderer.sprite = actionFrames[frameIndex];
+        }
+        else
+        {
+            actor.Renderer.sprite = facingFrames[pose];
+        }
         if (actor.IsRaider && actor.HealthBack != null)
         {
             actor.HealthBack.sortingOrder = actor.Renderer.sortingOrder + 20;
@@ -977,8 +1020,11 @@ public sealed class RusthollowDemo : MonoBehaviour
         player.Root.transform.position = new Vector3(PlayerSpawnPosition.x, PlayerSpawnPosition.y, player.Root.transform.position.z);
         player.Facing = Vector2.up;
         player.ActionTime = 0f;
+        player.ActionDuration = 0f;
+        player.IsMeleeAttacking = false;
         player.AnimationTime = 0f;
         player.IsRunning = false;
+        currentWeapon = WeaponType.Rifle;
         foreach (Actor raider in raiders)
         {
             if (raider.Root != null)
@@ -1089,12 +1135,14 @@ public sealed class RusthollowDemo : MonoBehaviour
         GUILayout.Label($"CREDITS  {credits}       XP  {xp}", body);
         GUILayout.EndArea();
 
-        GUILayout.BeginArea(new Rect(Screen.width - 346f, 16f, 330f, 240f), GUI.skin.box);
+        GUILayout.BeginArea(new Rect(Screen.width - 346f, 16f, 330f, 260f), GUI.skin.box);
         GUILayout.Label("FIELD CONTROLS", heading);
         GUILayout.Label("WASD / Arrows   Move", body);
         GUILayout.Label("Click Game view for keyboard focus", body);
         GUILayout.Label("Mouse   Aim", body);
-        GUILayout.Label("Left click   Fire Rustline Rifle", body);
+        string weaponName = currentWeapon == WeaponType.Rifle ? "Rustline Rifle" : "Sidearm Pistol";
+        GUILayout.Label($"Left click   Fire {weaponName}", body);
+        GUILayout.Label("1   Rifle   |   2   Pistol", body);
         GUILayout.Label("Right click / Space   Melee", body);
         GUILayout.Label("Shift   Run   |   Q   Tactical Focus", body);
         GUILayout.Label("E   Bio-Boost   |   F   Talk to Mara", body);
