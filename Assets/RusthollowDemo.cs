@@ -50,7 +50,6 @@ public sealed class RusthollowDemo : MonoBehaviour
     private readonly List<Actor> raiders = new List<Actor>();
     private readonly List<Projectile> projectiles = new List<Projectile>();
     private readonly List<Effect> effects = new List<Effect>();
-    private readonly List<Sprite> terrainVariants = new List<Sprite>();
     private readonly HashSet<Collider2D> furnitureColliders = new HashSet<Collider2D>();
     private readonly List<UnityEngine.Object> generatedAssets = new List<UnityEngine.Object>();
     private readonly List<Sprite> operatorFrames = new List<Sprite>();
@@ -79,7 +78,6 @@ public sealed class RusthollowDemo : MonoBehaviour
     private Camera gameCamera;
     private Actor player;
     private Actor fixer;
-    private SpriteRenderer terrainRenderer;
     private Sprite[] propSprites;
     private Sprite mechanicSprite;
     private Sprite bulletSprite;
@@ -108,22 +106,7 @@ public sealed class RusthollowDemo : MonoBehaviour
     private const int RunPoseStart = 5;
     private const int ShootPoseStart = 9;
     private const int AttackPose = 11;
-    private static readonly string[] TerrainVariantAssets =
-    {
-        "TerrainVariants/terrain-base-cracked-stone",
-        "TerrainVariants/terrain-mossy-stone",
-        "TerrainVariants/terrain-rocky-gravel",
-        "TerrainVariants/terrain-worn-concrete"
-    };
-    private static readonly string[] TerrainVariantLabels =
-    {
-        "Base cracked stone",
-        "Mossy stone",
-        "Rocky gravel",
-        "Worn concrete"
-    };
     private static readonly Vector2 PlayerSpawnPosition = new Vector2(0f, -1.05f);
-    private int terrainVariantIndex;
 
     private void Start()
     {
@@ -162,20 +145,6 @@ public sealed class RusthollowDemo : MonoBehaviour
             return false;
         }
 
-        foreach (string terrainAsset in TerrainVariantAssets)
-        {
-            Texture2D terrainTexture = LoadTexture(terrainAsset);
-            if (terrainTexture == null)
-            {
-                return false;
-            }
-
-            terrainVariants.Add(MakeSprite(
-                terrainTexture,
-                new Rect(0f, 0f, terrainTexture.width, terrainTexture.height),
-                new Vector2(0.5f, 0.5f)));
-        }
-
         CreatePropSprites(propTexture);
         CreateCharacterSprites(peopleTexture);
         mechanicSprite = MakeSprite(
@@ -194,11 +163,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         generatedAssets.Add(solidTexture);
         solidSprite = MakeSprite(solidTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
 
-        GameObject room = new GameObject("Rusthollow outdoor terrain");
-        room.transform.position = new Vector3(0f, 0f, 2f);
-        terrainRenderer = room.AddComponent<SpriteRenderer>();
-        terrainRenderer.sprite = terrainVariants[terrainVariantIndex];
-        terrainRenderer.sortingOrder = -1000;
         return true;
     }
 
@@ -319,7 +283,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         gameCamera.orthographic = true;
         gameCamera.orthographicSize = 5.4f;
         gameCamera.clearFlags = CameraClearFlags.SolidColor;
-        gameCamera.backgroundColor = new Color(0.055f, 0.065f, 0.063f);
+        gameCamera.backgroundColor = new Color(0.24f, 0.25f, 0.21f);
         gameCamera.transform.position = new Vector3(0f, 0f, -10f);
         gameCamera.transform.rotation = Quaternion.identity;
         Cursor.visible = true;
@@ -456,11 +420,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         {
             ResetPlayer();
         }
-        if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
-        {
-            CycleTerrain();
-        }
-
         if (gameOver)
         {
             UpdateEffects(deltaTime);
@@ -1104,13 +1063,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         fixerMessageTime = 2.5f;
     }
 
-    private void CycleTerrain()
-    {
-        terrainVariantIndex = (terrainVariantIndex + 1) % terrainVariants.Count;
-        terrainRenderer.sprite = terrainVariants[terrainVariantIndex];
-        ShowMessage("TERRAIN // " + TerrainVariantLabels[terrainVariantIndex]);
-    }
-
     private static Vector2 ActorPosition(Actor actor)
     {
         return actor == null || actor.Root == null ? Vector2.zero : actor.Root.transform.position;
@@ -1190,7 +1142,6 @@ public sealed class RusthollowDemo : MonoBehaviour
         GUILayout.Label("Right click / Space   Melee", body);
         GUILayout.Label("Shift   Run   |   Q   Tactical Focus", body);
         GUILayout.Label("E   Bio-Boost   |   F   Talk to Mara", body);
-        GUILayout.Label("T   Cycle terrain", body);
         GUILayout.EndArea();
 
         if (fixer != null && fixer.Root != null)
