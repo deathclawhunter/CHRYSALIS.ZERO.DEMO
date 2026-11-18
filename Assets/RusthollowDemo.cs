@@ -48,8 +48,12 @@ public sealed class RusthollowDemo : MonoBehaviour
     private readonly List<Sprite> raiderFrames = new List<Sprite>();
     private readonly List<Sprite> operatorBackFrames = new List<Sprite>();
     private readonly List<Sprite> operatorSideFrames = new List<Sprite>();
+    private readonly List<Sprite> operatorBackDiagonalFrames = new List<Sprite>();
+    private readonly List<Sprite> operatorFrontDiagonalFrames = new List<Sprite>();
     private readonly List<Sprite> raiderBackFrames = new List<Sprite>();
     private readonly List<Sprite> raiderSideFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderBackDiagonalFrames = new List<Sprite>();
+    private readonly List<Sprite> raiderFrontDiagonalFrames = new List<Sprite>();
     private readonly Vector2[] startingRaiderPositions =
     {
         new Vector2(-5.2f, -0.25f),
@@ -85,6 +89,11 @@ public sealed class RusthollowDemo : MonoBehaviour
     private const float RoomHalfWidth = 8.2f;
     private const float RoomHalfDepth = 3.4f;
     private const int ContractGoal = 5;
+    private const int WalkPoseStart = 1;
+    private const int RunPoseStart = 5;
+    private const int ShootPoseStart = 9;
+    private const int AttackPose = 11;
+    private static readonly Vector2 PlayerSpawnPosition = new Vector2(0f, -1.05f);
 
     private void Start()
     {
@@ -164,7 +173,9 @@ public sealed class RusthollowDemo : MonoBehaviour
             return null;
         }
 
-        texture.filterMode = FilterMode.Bilinear;
+        texture.filterMode = assetName == "people" || assetName == "people-angles"
+            ? FilterMode.Point
+            : FilterMode.Bilinear;
         texture.wrapMode = TextureWrapMode.Clamp;
         return texture;
     }
@@ -199,9 +210,9 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         const int frameWidth = 192;
         const int frameHeight = 256;
-        for (int rowFromTop = 0; rowFromTop < 4; rowFromTop++)
+        for (int rowFromTop = 0; rowFromTop < 2; rowFromTop++)
         {
-            for (int column = 0; column < 4; column++)
+            for (int column = 0; column < 12; column++)
             {
                 Rect rect = new Rect(
                     column * frameWidth,
@@ -209,7 +220,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                     frameWidth,
                     frameHeight);
                 Sprite frame = MakeSprite(texture, rect, new Vector2(0.5f, 0.035f));
-                if (rowFromTop < 2)
+                if (rowFromTop == 0)
                 {
                     operatorFrames.Add(frame);
                 }
@@ -225,9 +236,9 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         const int frameWidth = 192;
         const int frameHeight = 256;
-        for (int rowFromTop = 0; rowFromTop < 4; rowFromTop++)
+        for (int rowFromTop = 0; rowFromTop < 8; rowFromTop++)
         {
-            for (int column = 0; column < 8; column++)
+            for (int column = 0; column < 12; column++)
             {
                 Rect rect = new Rect(
                     column * frameWidth,
@@ -239,8 +250,12 @@ public sealed class RusthollowDemo : MonoBehaviour
                 {
                     0 => operatorBackFrames,
                     1 => operatorSideFrames,
-                    2 => raiderBackFrames,
-                    _ => raiderSideFrames
+                    2 => operatorBackDiagonalFrames,
+                    3 => operatorFrontDiagonalFrames,
+                    4 => raiderBackFrames,
+                    5 => raiderSideFrames,
+                    6 => raiderBackDiagonalFrames,
+                    _ => raiderFrontDiagonalFrames
                 };
                 destination.Add(frame);
             }
@@ -325,7 +340,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void CreateActors()
     {
-        player = CreateActor("Rustline Operator", new Vector2(0f, -1.65f), true, false);
+        player = CreateActor("Rustline Operator", PlayerSpawnPosition, true, false);
         player.Health = 100f;
         player.IsPlayer = true;
         player.Facing = Vector2.up;
@@ -829,23 +844,25 @@ public sealed class RusthollowDemo : MonoBehaviour
         int pose;
         if (actor.ActionTime > 0f)
         {
-            pose = actor.IsRaider || actor.IsPlayer ? (actor.IsPlayer && fireCooldown > 0.08f ? 5 + ((int)(Time.time * 18f) % 2) : 7) : 0;
+            pose = actor.IsPlayer && fireCooldown > 0.08f
+                ? ShootPoseStart + ((int)(Time.time * 12f) % 2)
+                : (actor.IsRaider || actor.IsPlayer ? AttackPose : 0);
         }
         else if (actor.IsPlayer && Mouse.current != null && Mouse.current.leftButton.isPressed && fireCooldown > 0f)
         {
-            pose = 5 + ((int)(Time.time * 18f) % 2);
+            pose = ShootPoseStart + ((int)(Time.time * 12f) % 2);
         }
-        else if (actor.IsPlayer && player.IsRunning)
+        else if (actor.IsPlayer && player.IsRunning && PlayerIsMoving())
         {
-            pose = 3 + ((int)(actor.AnimationTime / 0.14f) % 2);
+            pose = RunPoseStart + ((int)(actor.AnimationTime / 0.11f) % 4);
         }
-        else if (actor.IsPlayer && ActorPosition(player) != Vector2.zero && PlayerIsMoving())
+        else if (actor.IsPlayer && PlayerIsMoving())
         {
-            pose = 1 + ((int)(actor.AnimationTime / 0.24f) % 2);
+            pose = WalkPoseStart + ((int)(actor.AnimationTime / 0.18f) % 4);
         }
         else if (actor.IsRaider && raiderIsMoving(actor))
         {
-            pose = 1 + ((int)(actor.AnimationTime / 0.24f) % 2);
+            pose = WalkPoseStart + ((int)(actor.AnimationTime / 0.18f) % 4);
         }
         else
         {
@@ -879,6 +896,16 @@ public sealed class RusthollowDemo : MonoBehaviour
             return isRaider ? raiderSideFrames : operatorSideFrames;
         }
 
+        if (IsDiagonalFacing(actor.Facing))
+        {
+            if (actor.Facing.y > 0f)
+            {
+                return isRaider ? raiderBackDiagonalFrames : operatorBackDiagonalFrames;
+            }
+
+            return isRaider ? raiderFrontDiagonalFrames : operatorFrontDiagonalFrames;
+        }
+
         if (actor.Facing.y > 0f)
         {
             return isRaider ? raiderBackFrames : operatorBackFrames;
@@ -890,6 +917,13 @@ public sealed class RusthollowDemo : MonoBehaviour
     private static bool IsSideFacing(Vector2 facing)
     {
         return Mathf.Abs(facing.x) > Mathf.Abs(facing.y) * 2.2f;
+    }
+
+    private static bool IsDiagonalFacing(Vector2 facing)
+    {
+        float x = Mathf.Abs(facing.x);
+        float y = Mathf.Abs(facing.y);
+        return x > y * 0.45f && x <= y * 2.2f;
     }
 
     private bool raiderIsMoving(Actor actor)
@@ -940,7 +974,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private void ResetPlayer()
     {
-        player.Root.transform.position = new Vector3(0f, -1.65f, player.Root.transform.position.z);
+        player.Root.transform.position = new Vector3(PlayerSpawnPosition.x, PlayerSpawnPosition.y, player.Root.transform.position.z);
         player.Facing = Vector2.up;
         player.ActionTime = 0f;
         player.AnimationTime = 0f;
