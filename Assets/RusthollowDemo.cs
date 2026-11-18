@@ -138,7 +138,7 @@ public sealed class RusthollowDemo : MonoBehaviour
 
     private bool LoadArt()
     {
-        Texture2D roomTexture = LoadTexture("room-isometric");
+        Texture2D roomTexture = LoadTexture("room-rusthollow-terrain");
         Texture2D propTexture = LoadTexture("props");
         Texture2D peopleTexture = LoadTexture("people-gemini");
         Texture2D mechanicTexture = LoadTexture("mechanic");
