@@ -8,7 +8,7 @@ Unity project for the mobile action-RPG prototype, with a playable Rusthollow co
 - Open this repository root in Unity Hub.
 - Open `Assets/Scenes/RusthollowDemo.unity` and press **Play**.
 
-The scene is an original 2D isometric interior of the Rusted Halo in Rusthollow. It includes an angled room and diamond-tile floor, hand-drawn rear/profile/front character animation, separated enemy positions, layered furniture with collision, a mechanic NPC, visible rifle shots and impact effects, and a five-raider bounty.
+The scene is a 2.5D outdoor Rusthollow combat demo. It includes a textured cracked-stone and moss terrain, directional character sprites, separated enemy positions, a mechanic NPC, visible rifle shots and impact effects, and a five-raider bounty.
 
 Controls:
 

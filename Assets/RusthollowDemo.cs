@@ -79,6 +79,7 @@ public sealed class RusthollowDemo : MonoBehaviour
     private Actor player;
     private Actor fixer;
     private Sprite[] propSprites;
+    private Sprite terrainSprite;
     private Sprite mechanicSprite;
     private Sprite bulletSprite;
     private Sprite impactSprite;
@@ -104,8 +105,8 @@ public sealed class RusthollowDemo : MonoBehaviour
     private const int ContractGoal = 5;
     private const int WalkPoseStart = 1;
     private const int RunPoseStart = 5;
-    private const float WalkFrameDistance = 0.28f;
-    private const float RunFrameDistance = 0.34f;
+    private const float PlayerGaitFrameDistance = 1.35f;
+    private const float RaiderWalkFrameDistance = 0.28f;
     private const int ShootPoseStart = 9;
     private const int AttackPose = 11;
     private static readonly Vector2 PlayerSpawnPosition = new Vector2(0f, -1.05f);
@@ -142,13 +143,18 @@ public sealed class RusthollowDemo : MonoBehaviour
         Texture2D propTexture = LoadTexture("props");
         Texture2D peopleTexture = LoadTexture("people-gemini");
         Texture2D mechanicTexture = LoadTexture("mechanic");
-        if (propTexture == null || peopleTexture == null || mechanicTexture == null)
+        Texture2D terrainTexture = LoadTexture("room-rusthollow-terrain");
+        if (propTexture == null || peopleTexture == null || mechanicTexture == null || terrainTexture == null)
         {
             return false;
         }
 
         CreatePropSprites(propTexture);
         CreateCharacterSprites(peopleTexture);
+        terrainSprite = MakeSprite(
+            terrainTexture,
+            new Rect(0f, 0f, terrainTexture.width, terrainTexture.height),
+            new Vector2(0.5f, 0.5f));
         mechanicSprite = MakeSprite(
             mechanicTexture,
             new Rect(0f, 0f, mechanicTexture.width, mechanicTexture.height),
@@ -296,6 +302,12 @@ public sealed class RusthollowDemo : MonoBehaviour
     {
         RenderSettings.fog = false;
         Time.timeScale = 1f;
+
+        GameObject terrain = new GameObject("Rusthollow Terrain");
+        terrain.transform.position = new Vector3(0f, 0f, 2f);
+        SpriteRenderer terrainRenderer = terrain.AddComponent<SpriteRenderer>();
+        terrainRenderer.sprite = terrainSprite;
+        terrainRenderer.sortingOrder = -1000;
     }
 
     private void CreateFurniture()
@@ -873,15 +885,15 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
         else if (actor.IsPlayer && player.IsRunning && PlayerIsMoving())
         {
-            pose = RunPoseStart + MovementFrame(actor, RunFrameDistance);
+            pose = RunPoseStart + MovementFrame(actor, PlayerGaitFrameDistance);
         }
         else if (actor.IsPlayer && PlayerIsMoving())
         {
-            pose = WalkPoseStart + MovementFrame(actor, WalkFrameDistance);
+            pose = WalkPoseStart + MovementFrame(actor, PlayerGaitFrameDistance);
         }
         else if (actor.IsRaider && raiderIsMoving(actor))
         {
-            pose = WalkPoseStart + MovementFrame(actor, WalkFrameDistance);
+            pose = WalkPoseStart + MovementFrame(actor, RaiderWalkFrameDistance);
         }
         else
         {
