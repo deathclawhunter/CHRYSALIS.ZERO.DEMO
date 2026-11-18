@@ -879,15 +879,15 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
         else if (actor.IsPlayer && player.IsRunning && PlayerIsMoving())
         {
-            pose = RunPoseStart + ((int)(actor.AnimationTime / 0.11f) % 4);
+            pose = RunPoseStart + MovementFrame(actor, 0.11f);
         }
         else if (actor.IsPlayer && PlayerIsMoving())
         {
-            pose = WalkPoseStart + ((int)(actor.AnimationTime / 0.18f) % 4);
+            pose = WalkPoseStart + MovementFrame(actor, 0.18f);
         }
         else if (actor.IsRaider && raiderIsMoving(actor))
         {
-            pose = WalkPoseStart + ((int)(actor.AnimationTime / 0.18f) % 4);
+            pose = WalkPoseStart + MovementFrame(actor, 0.18f);
         }
         else
         {
@@ -920,6 +920,12 @@ public sealed class RusthollowDemo : MonoBehaviour
             actor.HealthBack.sortingOrder = actor.Renderer.sortingOrder + 20;
             actor.HealthFill.sortingOrder = actor.Renderer.sortingOrder + 21;
         }
+    }
+
+    private static int MovementFrame(Actor actor, float frameDuration)
+    {
+        int frame = (int)(actor.AnimationTime / frameDuration) % 4;
+        return actor.Facing.x > 0f ? 3 - frame : frame;
     }
 
     private bool PlayerIsMoving()
