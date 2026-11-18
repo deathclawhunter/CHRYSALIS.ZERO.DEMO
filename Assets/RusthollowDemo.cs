@@ -20,7 +20,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         public float Health;
         public float AttackTimer;
         public float WakeTimer;
-        public float AnimationTime;
+        public float AnimationDistance;
         public float ActionTime;
         public float ActionDuration;
         public bool IsRaider;
@@ -104,6 +104,8 @@ public sealed class RusthollowDemo : MonoBehaviour
     private const int ContractGoal = 5;
     private const int WalkPoseStart = 1;
     private const int RunPoseStart = 5;
+    private const float WalkFrameDistance = 0.28f;
+    private const float RunFrameDistance = 0.34f;
     private const int ShootPoseStart = 9;
     private const int AttackPose = 11;
     private static readonly Vector2 PlayerSpawnPosition = new Vector2(0f, -1.05f);
@@ -517,8 +519,9 @@ public sealed class RusthollowDemo : MonoBehaviour
         {
             SetFacing(player, movement);
             float speed = player.IsRunning ? 4.1f : 2.7f;
+            Vector2 previousPosition = ActorPosition(player);
             MovePlayer(movement * speed * deltaTime);
-            player.AnimationTime += deltaTime;
+            player.AnimationDistance += Vector2.Distance(previousPosition, ActorPosition(player));
         }
 
         if (mouse != null && mouse.leftButton.isPressed && fireCooldown <= 0f)
@@ -679,7 +682,7 @@ public sealed class RusthollowDemo : MonoBehaviour
                     }
                 }
 
-                raider.AnimationTime += deltaTime;
+                raider.AnimationDistance += Vector2.Distance(position, ActorPosition(raider));
             }
             else
             {
@@ -870,15 +873,15 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
         else if (actor.IsPlayer && player.IsRunning && PlayerIsMoving())
         {
-            pose = RunPoseStart + MovementFrame(actor, 0.11f);
+            pose = RunPoseStart + MovementFrame(actor, RunFrameDistance);
         }
         else if (actor.IsPlayer && PlayerIsMoving())
         {
-            pose = WalkPoseStart + MovementFrame(actor, 0.18f);
+            pose = WalkPoseStart + MovementFrame(actor, WalkFrameDistance);
         }
         else if (actor.IsRaider && raiderIsMoving(actor))
         {
-            pose = WalkPoseStart + MovementFrame(actor, 0.18f);
+            pose = WalkPoseStart + MovementFrame(actor, WalkFrameDistance);
         }
         else
         {
@@ -913,9 +916,9 @@ public sealed class RusthollowDemo : MonoBehaviour
         }
     }
 
-    private static int MovementFrame(Actor actor, float frameDuration)
+    private static int MovementFrame(Actor actor, float frameDistance)
     {
-        int frame = (int)(actor.AnimationTime / frameDuration) % 4;
+        int frame = (int)(actor.AnimationDistance / frameDistance) % 4;
         return actor.Facing.x > 0f ? 3 - frame : frame;
     }
 
@@ -1019,7 +1022,7 @@ public sealed class RusthollowDemo : MonoBehaviour
         player.ActionTime = 0f;
         player.ActionDuration = 0f;
         player.IsMeleeAttacking = false;
-        player.AnimationTime = 0f;
+        player.AnimationDistance = 0f;
         player.IsRunning = false;
         currentWeapon = WeaponType.Rifle;
         foreach (Actor raider in raiders)
